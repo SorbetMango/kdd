@@ -160,3 +160,8 @@ a.pill.cta:hover span{transform:translateX(5px)}
 .hero .meta .btn.ghost{padding:12px 20px;font-size:15px}
 .hero .meta a.pill.cta{padding:11px 26px}
 @media(max-width:820px){.hero{grid-template-columns:1fr}}
+
+/* mniej pustego miejsca pod menu; zachowaj boczne marginesy .wrap */
+.hero{padding:20px 24px 40px}
+.hero .badge.big{margin-top:0}
+@media(max-width:820px){.hero{padding:16px 20px 32px}}
