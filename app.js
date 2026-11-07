@@ -33,13 +33,14 @@
   if (page === "home") {
     const upcoming = ALL.filter(isUpcoming).sort((a, b) => a.date.localeCompare(b.date));
     const featured = upcoming[0] || ALL[0];
-    $("#hero").innerHTML = `<div class="wrap hero"><div>
+    $("#hero").innerHTML = `<div class="wrap hero"><div class="hero-text">
       ${featured.badge ? `<div class="badge big">${esc(featured.badge)}</div>` : ""}<div class="eyebrow">${esc(featured.series || S.venue.name)} <span class="muted">| ${esc(S.venue.city)}</span></div>
-      <h1 style="margin-top:22px">Kino z Dianą Dąbrowską <br>#${featured.number}</h1>
-      <div class="meta"><span class="btn ghost static">${fmtShort(featured.date)}${featured.time ? " o " + featured.time : ""}</span>
+      <h1 style="margin-top:22px">Kino z Dianą Dąbrowską <br>#${featured.number}</h1></div>
+      ${still(featured)}
+      <div class="hero-meta"><div class="meta"><span class="btn ghost static">${fmtShort(featured.date)}${featured.time ? " o " + featured.time : ""}</span>
       <a class="btn ghost" href="${href(featured)}">Szczegóły</a>
       ${isUpcoming(featured) ? `<a class="pill cta" href="${esc(featured.ticketUrl || S.venue.url)}" target="_blank" rel="noopener">Kup bilet <span aria-hidden="true">→</span></a>` : ""}</div>
-      <div class="sub">${esc(featured.format || "Film + dyskusja")}</div></div>${still(featured)}</div>
+      <div class="sub">${esc(featured.format || "Film + dyskusja")}</div></div></div>
       ${featured.description ? `<div class="banner">${esc(featured.description.split("\n")[0])}</div>` : featured.note ? `<div class="banner">${esc(featured.note)}</div>` : ""}`;
 
     $("#upcoming").innerHTML = upcoming.length ? upcoming.map(card).join("") : `<p class="muted">Kolejne spotkanie wkrótce — zapisz się na newsletter, żeby nie przegapić.</p>`;
