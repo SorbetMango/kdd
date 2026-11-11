@@ -8,6 +8,9 @@ import base64, io, ipaddress, json, os, re, socket, subprocess, sys, time, unico
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import build as site_build   # miniatury, strony wydarzeń, mapa strony (tools/build.py)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("KDD_ROOT") or os.path.dirname(HERE)
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8125
@@ -275,7 +278,41 @@ def do_save(p):
     apply_image(cur, "hero", p.get("hero"), number)
     apply_image(cur, "poster", p.get("poster"), number)
     write(head, events)
+    rebuild()
     return {"id": cur["id"], "summary": summary(cur)}
+
+
+def rebuild():
+    """Odświeża miniatury, strony wydarzeń i mapę strony. Błąd nie cofa zapisu danych."""
+    try:
+        site_build.build()
+    except Exception as e:
+        print("Błąd budowania stron:", e)
+
+
+def event_files(e):
+    """Lokalne pliki obrazów używane przez wydarzenie (ścieżki względne, tylko z folderu img/)."""
+    paths = [e.get("image"), e.get("backdrop"), e.get("poster"), *(e.get("gallery") or [])]
+    return {p for p in paths if isinstance(p, str) and p.startswith("img/") and ".." not in p}
+
+
+def do_delete(p):
+    head, events = load()
+    cur = next((e for e in events if e["id"] == p.get("id")), None)
+    if not cur:
+        raise ValueError("Nie znaleziono wydarzenia do usunięcia.")
+    events.remove(cur)
+    # usuwamy pliki obrazów tylko wtedy, gdy nie używa ich żadne inne wydarzenie (np. ten sam film pokazany drugi raz)
+    still_used = set().union(*(event_files(e) for e in events)) if events else set()
+    removed, img_dir = [], os.path.normcase(os.path.normpath(os.path.join(ROOT, "img"))) + os.sep
+    for rel in sorted(event_files(cur) - still_used):
+        path = os.path.normpath(os.path.join(ROOT, rel))
+        if os.path.normcase(path).startswith(img_dir) and os.path.isfile(path):
+            os.remove(path)
+            removed.append(rel)
+    write(head, events)
+    rebuild()
+    return {"number": cur["number"], "title": cur["film"]["title"], "removedFiles": removed}
 
 
 # ---------- git ----------
@@ -300,6 +337,10 @@ def do_publish(message):
     if not status:
         return {"ok": True, "text": "Nie ma nic nowego do opublikowania."}
     bump_versions()
+    try:
+        site_build.build()   # po podbiciu wersji, żeby strony wydarzeń wskazywały nowe pliki
+    except Exception as e:
+        return {"ok": False, "text": "Nie udało się zbudować stron wydarzeń, nic nie wysłano:\n" + str(e)}
     git("add", "-A")
     code, out = git("commit", "-m", message or "Aktualizacja wydarzeń z panelu")
     if code:
@@ -371,6 +412,8 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(n) or b"{}")
             if self.path == "/api/save":
                 return self._send(200, do_save(body))
+            if self.path == "/api/delete":
+                return self._send(200, do_delete(body))
             if self.path == "/api/publish":
                 return self._send(200, do_publish(body.get("message")))
             return self._send(404, {"error": "nie znaleziono"})

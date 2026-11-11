@@ -1,6 +1,8 @@
 /* Ustawienia strony: linki, nazwy. Zmień "#" na prawdziwe adresy. */
 window.SITE = {
   name: "Kino z Dianą Dąbrowską",
+  // pełny adres strony (z ukośnikiem na końcu) — używany w podglądach linków, mapie strony i stronie 404; po zakupie domeny zmień tutaj
+  url: "https://sorbetmango.github.io/kdd/",
   tagline: "Film + dyskusja. Klasyka na dużym ekranie.",
   venue: { name: "Kino Charlie", city: "Łódź", url: "https://charlie.pl" },
   links: {

@@ -71,7 +71,7 @@ for e in events:
     except Exception as ex: print("błąd", e["number"], ex); continue
     if not r or not r["poster"]: missing.append(f"#{e['number']} {f['title']}"); continue
     e["poster"] = IMG + "w780" + r["poster"]
-    if r["backdrop"]: e["backdrop"] = IMG + "w780" + r["backdrop"]
+    if r["backdrop"]: e["backdrop"] = IMG + "w1280" + r["backdrop"]
     if r["year"]: f["year"] = int(r["year"])
     if r["original"] and r["original"] != f["title"]: f.setdefault("original", r["original"])
     print("ok", e["number"], f["title"])

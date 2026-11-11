@@ -17,6 +17,8 @@ button:hover{border-color:var(--accent);color:var(--accent)}
 button.primary{background:var(--accent);border-color:var(--accent);color:#111}
 button.primary:hover{background:var(--accent2);border-color:var(--accent2);color:#111}
 button:disabled{opacity:.4;cursor:default}
+button.danger{border-color:var(--err);color:var(--err)}
+button.danger:hover{background:var(--err);color:#111;border-color:var(--err)}
 .layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 62px)}
 aside{border-right:1px solid var(--line);padding:1rem;background:var(--bg2);overflow:auto;max-height:calc(100vh - 62px);position:sticky;top:62px}
 main{padding:1.4rem 2rem 6rem;max-width:1100px}
@@ -61,7 +63,7 @@ details{border:1px solid var(--line);border-radius:.6rem;padding:.6rem .9rem;mar
 <aside><label>Szukaj w istniejących</label><input id="filter" placeholder="tytuł, reżyser, numer…" style="margin-bottom:.8rem"><div id="list"></div></aside>
 <main id="main"><h2>Witaj</h2><p class="note">Wybierz wydarzenie z listy po lewej, żeby je poprawić, albo kliknij „+ Nowe wydarzenie”.</p></main>
 </div>
-<div class="bar hide" id="saveBar"><button class="primary" id="saveBtn">Zapisz</button><span class="note" id="saveNote">Zapis dzieje się na Twoim komputerze. Na stronie w internecie zmiana pojawi się po kliknięciu „Opublikuj na stronie”.</span></div>
+<div class="bar hide" id="saveBar"><button class="primary" id="saveBtn">Zapisz</button><span class="note" id="saveNote">Zapis dzieje się na Twoim komputerze. Na stronie w internecie zmiana pojawi się po kliknięciu „Opublikuj na stronie”.</span><span class="sp" style="flex:1"></span><button class="danger hide" id="delBtn">Usuń wydarzenie</button></div>
 <div class="msg hide" id="msg"></div>
 
 <script>
@@ -115,6 +117,7 @@ function imageBlock(kind) {
 function render() {
   const e = cur, f = e.film || {};
   $("#saveBar").classList.remove("hide");
+  $("#delBtn").classList.toggle("hide", isNew);
   $("#main").innerHTML = `
   <h2>${isNew ? "Nowe wydarzenie" : "#" + e.number + " " + esc(f.title)}</h2>
   <h3>1. Znajdź film w TMDB</h3>
@@ -200,9 +203,22 @@ $("#saveBtn").onclick = () => guard(async () => {
   toast(`Zapisano „${r.summary.title}”. Podgląd: http://localhost:8123/wydarzenie.html?id=${r.id}\nAby pokazać zmianę na stronie w internecie, kliknij „Opublikuj na stronie”.`);
   await loadList(); await openEvent(r.id);
 }, $("#saveBtn"));
+$("#delBtn").onclick = () => guard(async () => {
+  if (!cur || isNew) return;
+  const title = (cur.film && cur.film.title) || "";
+  if (!confirm(`Usunąć wydarzenie #${cur.number} „${title}” (${cur.date})?\n\nZniknie z listy na Twoim komputerze. Na stronie w internecie zniknie po kliknięciu „Opublikuj na stronie”. Do czasu publikacji można je przywrócić (git), po publikacji też, ale trudniej.`)) return;
+  const r = await api("/api/delete", {id: cur.id});
+  lastMsg = `Usunięto wydarzenie #${r.number}: ${r.title}`;
+  cur = null; isNew = false; resetSel();
+  $("#saveBar").classList.add("hide");
+  $("#main").innerHTML = `<h2>Usunięto</h2><p class="note">Wydarzenie #${r.number} „${esc(r.title)}” zostało usunięte${r.removedFiles.length ? ` razem z ${r.removedFiles.length} zdjęciem/zdjęciami, których nie używało inne wydarzenie` : ""}. Aby zmiana pojawiła się na stronie w internecie, kliknij „Opublikuj na stronie”.</p>`;
+  toast(lastMsg + ". Kliknij „Opublikuj na stronie”, żeby zmiana trafiła do internetu.");
+  await loadList();
+}, $("#delBtn"));
+let lastMsg = "";
 $("#pubBtn").onclick = () => guard(async () => {
   if (!confirm("Opublikować wszystkie zapisane zmiany na stronie w internecie?")) return;
-  const r = await api("/api/publish", {message: cur && cur.film && cur.film.title ? `Wydarzenie #${cur.number}: ${cur.film.title}` : "Aktualizacja wydarzeń z panelu"});
+  const r = await api("/api/publish", {message: cur && cur.film && cur.film.title ? `Wydarzenie #${cur.number}: ${cur.film.title}` : lastMsg || "Aktualizacja wydarzeń z panelu"});
   toast(r.text, r.ok ? "ok" : "err", 12000); await loadList();
 }, $("#pubBtn"));
 guard(loadList);
