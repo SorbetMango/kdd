@@ -44,6 +44,8 @@ label{display:block;font-size:.78rem;letter-spacing:.08em;text-transform:upperca
 .cur img{height:80px;border-radius:.3rem}
 .radio{display:flex;gap:1.2rem;flex-wrap:wrap;margin:.5rem 0}.radio label{text-transform:none;letter-spacing:0;font-size:.95rem;color:var(--fg);display:flex;gap:.4rem;align-items:center}
 .radio input{width:auto}
+.prev{margin-top:.5rem}.prev img{max-height:110px;border-radius:.4rem;border:1px solid var(--line)}
+.urlrow{display:flex;gap:.6rem;align-items:center}.urlrow input{flex:1}
 .note{color:var(--muted);font-size:.85rem}
 .msg{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);padding:.8rem 1.4rem;border-radius:.6rem;background:var(--bg3);border:1px solid var(--line);max-width:90vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6);white-space:pre-wrap}
 .msg.ok{border-color:var(--ok)}.msg.err{border-color:var(--err)}
@@ -66,7 +68,9 @@ details{border:1px solid var(--line);border-radius:.6rem;padding:.6rem .9rem;mar
 const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T = (p, w = "w300") => "https://image.tmdb.org/t/p/" + w + p;
 const local = p => !p ? "" : /^https?:/.test(p) ? p : "/" + p;
-let events = [], nextNumber = 1, cur = null, isNew = false, tm = {poster: null, backdrop: null}, hero = "keep", upload = null, tmdbData = null;
+let events = [], nextNumber = 1, cur = null, isNew = false, tm = {poster: null, backdrop: null}, tmdbData = null;
+// źródło zdjęcia dla kadru (hero) i plakatu (poster): keep | tmdb | upload | url
+const sel = {hero: {mode: "keep", upload: null, url: ""}, poster: {mode: "keep", upload: null, url: ""}};
 
 async function api(path, body) {
   const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json", "X-Panel": "1"}, body: JSON.stringify(body)} : {});
@@ -88,29 +92,41 @@ $("#filter").oninput = drawList;
 $("#list").onclick = ev => { const it = ev.target.closest(".item"); if (it) guard(() => openEvent(it.dataset.id)); };
 $("#newBtn").onclick = () => openNew();
 
+function resetSel() { sel.hero = {mode: "keep", upload: null, url: ""}; sel.poster = {mode: "keep", upload: null, url: ""}; tm = {poster: null, backdrop: null}; tmdbData = null; }
 function blank() { return {number: nextNumber, date: "", time: "", format: "Film + dyskusja", series: "", badge: "", note: "", description: "", ticketUrl: "", film: {}}; }
-function openNew() { cur = blank(); isNew = true; tm = {poster: null, backdrop: null}; hero = "tmdb"; upload = null; tmdbData = null; render(); drawList(); }
-async function openEvent(id) { cur = await api("/api/event?id=" + encodeURIComponent(id)); isNew = false; tm = {poster: null, backdrop: null}; hero = "keep"; upload = null; tmdbData = null; render(); drawList(); scrollTo(0, 0); }
+function openNew() { cur = blank(); isNew = true; resetSel(); render(); drawList(); }
+async function openEvent(id) { cur = await api("/api/event?id=" + encodeURIComponent(id)); isNew = false; resetSel(); render(); drawList(); scrollTo(0, 0); }
 
 const F = (k, label, v, ph = "") => `<div><label>${label}</label><input data-k="${k}" value="${esc(v)}" placeholder="${esc(ph)}"></div>`;
+
+// Blok wyboru zdjęcia: kind = "hero" (kadr) albo "poster" (plakat)
+function imageBlock(kind) {
+  const e = cur, current = kind === "hero" ? (e.image || e.backdrop || e.poster) : e.poster, m = sel[kind].mode;
+  const name = "m-" + kind, grid = kind === "hero" ? "bd" : "ps";
+  const radio = (v, t) => `<label><input type="radio" name="${name}" value="${v}" ${m === v ? "checked" : ""}> ${t}</label>`;
+  return `<div class="cur">${current ? `<img src="${esc(local(current))}" alt="">` : ""}<div><b>Obecne ${kind === "hero" ? "zdjęcie (kadr)" : "zdjęcie plakatu"}</b><div class="note">${esc(current || "brak")}</div></div></div>
+  <div class="radio">${radio("keep", "Zostaw obecne")}${radio("tmdb", "Z TMDB (wybierz poniżej)")}${radio("upload", "Własny plik")}${radio("url", "Z linku (pobierze się samo)")}</div>
+  <div id="${grid}" class="imgs ${kind === "poster" ? "posters" : ""}"></div>
+  <div class="row c2" style="margin-top:.8rem">
+    <div><label>Własny plik ${kind === "hero" ? "(najlepiej poziomy, min. 1600 px szerokości)" : "(pionowy plakat)"}</label><input type="file" id="file-${kind}" accept="image/*"><div class="prev" id="fprev-${kind}"></div></div>
+    <div><label>Albo link do zdjęcia (adres https://…)</label><div class="urlrow"><input id="url-${kind}" value="${esc(sel[kind].url)}" placeholder="https://…/plik.jpg"></div><div class="prev" id="uprev-${kind}"></div><div class="note">Wklej adres samego obrazka (w przeglądarce: prawy przycisk na zdjęciu → „Kopiuj adres obrazu”). Pobierze się przy zapisie.</div></div>
+  </div>`;
+}
 function render() {
-  const e = cur, f = e.film || {}, curImg = e.image || e.backdrop || e.poster;
+  const e = cur, f = e.film || {};
   $("#saveBar").classList.remove("hide");
   $("#main").innerHTML = `
   <h2>${isNew ? "Nowe wydarzenie" : "#" + e.number + " " + esc(f.title)}</h2>
   <h3>1. Znajdź film w TMDB</h3>
   <div class="row c4"><div><label>Tytuł</label><input id="sq" value="${esc(f.title || "")}" placeholder="np. Słodkie życie"></div><div><label>Reżyser (opcjonalnie)</label><input id="sd" value="${esc(f.director || "")}"></div><div><label>Rok produkcji (opcjonalnie)</label><input id="sy" value="${esc(f.year || "")}"></div><div style="align-self:end"><button id="sgo" class="primary" style="width:100%">Szukaj</button></div></div>
+  ${isNew ? "" : '<label class="note" style="text-transform:none;letter-spacing:0;display:flex;gap:.5rem;align-items:center;margin-bottom:.6rem"><input type="checkbox" id="onlyImg" checked style="width:auto"> Tylko zdjęcia z TMDB (nie zmieniaj danych filmu, które już wpisałem)</label>'}
   <div id="cands" class="cands"></div>
-  <p class="note" id="candNote">${isNew ? "Wpisz tytuł i kliknij Szukaj. Wybierz film, a ja uzupełnię dane i pokażę zdjęcia." : "Możesz pobrać dane ponownie, jeśli chcesz zmienić film lub kadr."}</p>
+  <p class="note" id="candNote">${isNew ? "Wpisz tytuł i kliknij Szukaj. Wybierz film, a uzupełnię dane i pokażę zdjęcia." : "Chcesz wybrać zdjęcie z TMDB? Kliknij Szukaj i wybierz film. Możesz też użyć własnego pliku albo linku poniżej."}</p>
 
-  <h3>2. Kadr w sekcji głównej i na kafelkach</h3>
-  <div class="cur">${curImg ? `<img src="${esc(local(curImg))}" alt="">` : ""}<div><b>Obecny kadr</b><div class="note">${esc(curImg || "brak")}</div></div></div>
-  <div class="radio"><label><input type="radio" name="hero" value="keep" ${hero === "keep" ? "checked" : ""}> Zostaw obecny</label><label><input type="radio" name="hero" value="tmdb" ${hero === "tmdb" ? "checked" : ""}> Wybrany z TMDB (poniżej)</label><label><input type="radio" name="hero" value="upload" ${hero === "upload" ? "checked" : ""}> Własne zdjęcie</label></div>
-  <div id="bd" class="imgs"></div>
-  <div class="row c2" style="margin-top:.8rem"><div><label>Własne zdjęcie (najlepiej poziome, min. 1600 px szerokości)</label><input type="file" id="file" accept="image/*"></div><div id="uprev"></div></div>
-  <h3 style="margin-top:1rem">Plakat (strona wydarzenia i katalog filmów)</h3><div id="ps" class="imgs posters"></div>
+  <h3>2. Kadr w sekcji głównej i na kafelkach</h3>${imageBlock("hero")}
+  <h3 style="margin-top:1.4rem">3. Plakat (strona wydarzenia i katalog filmów)</h3>${imageBlock("poster")}
 
-  <h3>3. Szczegóły wydarzenia</h3>
+  <h3>4. Szczegóły wydarzenia</h3>
   <div class="row c4">${F("number", "Numer spotkania", e.number)}<div><label>Data</label><input type="date" data-k="date" value="${esc(e.date)}"></div>${F("time", "Godzina (np. 19:00)", e.time, "19:00")}${F("badge", "Plakietka (np. Przedpremiera)", e.badge)}</div>
   <div class="row c2">${F("ticketUrl", "Link do biletów", e.ticketUrl, "https://bilety.charlie.pl/…")}${F("note", "Goście / uwagi", e.note)}</div>
   <div class="row c2">${F("series", "Cykl (np. Cinema Italia Oggi)", e.series)}${F("format", "Format", e.format)}</div>
@@ -118,29 +134,38 @@ function render() {
   <textarea data-k="description">${esc(e.description)}</textarea>
   <div style="margin:.4rem 0 1rem"><button id="useOv" ${tmdbData ? "" : "disabled"}>Wstaw opis filmu z TMDB</button></div>
 
-  <details ${isNew ? "" : ""}><summary>Dane filmu (uzupełniają się z TMDB, można poprawić)</summary><div style="margin-top:.8rem">
+  <details><summary>Dane filmu (uzupełniają się z TMDB, można poprawić)</summary><div style="margin-top:.8rem">
     <div class="row c3">${F("f.title", "Tytuł", f.title)}${F("f.director", "Reżyseria", f.director)}${F("f.year", "Rok", f.year)}</div>
     <div class="row c3">${F("f.original", "Tytuł oryginalny", f.original)}${F("f.country", "Kraj", f.country)}${F("f.runtime", "Czas trwania", f.runtime)}</div>
     <div class="row c3">${F("f.genre", "Gatunek", f.genre)}${F("f.screenplay", "Scenariusz", f.screenplay)}${F("f.cinematography", "Zdjęcia", f.cinematography)}</div>
     <div class="row c3">${F("f.music", "Muzyka", f.music)}${F("f.cast", "Obsada", f.cast)}${F("f.distributor", "Dystrybutor", f.distributor)}</div></div></details>`;
-  drawImages();
+  drawImages(); wireImageInputs("hero"); wireImageInputs("poster");
   $("#sgo").onclick = () => guard(doSearch, $("#sgo"));
   $("#sq").onkeydown = ev => { if (ev.key === "Enter") $("#sgo").click(); };
-  document.querySelectorAll('input[name=hero]').forEach(r => r.onchange = () => hero = r.value);
-  $("#file").onchange = readFile; $("#useOv").onclick = useOverview;
+  $("#useOv").onclick = useOverview;
   if (isNew && !f.title) $("#sq").focus();
 }
-function drawImages() {
-  if (!$("#bd")) return;
-  const d = tmdbData;
-  $("#bd").innerHTML = d ? d.backdrops.map(b => `<div class="img${tm.backdrop === b.path ? " on" : ""}" data-b="${esc(b.path)}"><img src="${T(b.path)}" alt="" loading="lazy"><small>${b.w}×${b.h}</small></div>`).join("") || '<p class="note">TMDB nie ma kadrów tego filmu — wgraj własne zdjęcie.</p>' : '<p class="note">Najpierw znajdź film (krok 1), a pokażę dostępne kadry.</p>';
-  $("#ps").innerHTML = d ? d.posters.map(b => `<div class="img${tm.poster === b.path ? " on" : ""}" data-p="${esc(b.path)}"><img src="${T(b.path, "w185")}" alt="" loading="lazy"></div>`).join("") : "";
-  $("#bd").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.backdrop = x.dataset.b; hero = "tmdb"; document.querySelector('input[name=hero][value=tmdb]').checked = true; drawImages(); };
-  $("#ps").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.poster = tm.poster === x.dataset.p ? null : x.dataset.p; drawImages(); };
+function setMode(kind, mode) { sel[kind].mode = mode; const r = document.querySelector(`input[name=m-${kind}][value=${mode}]`); if (r) r.checked = true; }
+function wireImageInputs(kind) {
+  document.querySelectorAll(`input[name=m-${kind}]`).forEach(r => r.onchange = () => sel[kind].mode = r.value);
+  $("#file-" + kind).onchange = () => {
+    const file = $("#file-" + kind).files[0]; if (!file) return;
+    const rd = new FileReader(); rd.onload = () => { sel[kind].upload = {name: file.name, data: rd.result}; setMode(kind, "upload"); $("#fprev-" + kind).innerHTML = `<img src="${rd.result}" alt="">`; }; rd.readAsDataURL(file);
+  };
+  const u = $("#url-" + kind);
+  const showUrl = () => {
+    const p = $("#uprev-" + kind), v = sel[kind].url;
+    p.innerHTML = /^https?:\/\//.test(v) ? `<img src="${esc(v)}" alt="" onerror="this.parentNode.innerHTML='<span class=note>Podglądu nie widać (strona może go blokować), ale spróbuję pobrać przy zapisie.</span>'">` : "";
+  };
+  u.oninput = () => { sel[kind].url = u.value.trim(); if (sel[kind].url) setMode(kind, "url"); showUrl(); };
+  showUrl();
 }
-function readFile() {
-  const file = $("#file").files[0]; if (!file) return;
-  const r = new FileReader(); r.onload = () => { upload = {name: file.name, data: r.result}; hero = "upload"; document.querySelector('input[name=hero][value=upload]').checked = true; $("#uprev").innerHTML = `<img src="${r.result}" style="height:90px;border-radius:.4rem" alt="">`; }; r.readAsDataURL(file);
+function drawImages() {
+  const d = tmdbData;
+  $("#bd").innerHTML = d ? d.backdrops.map(b => `<div class="img${tm.backdrop === b.path ? " on" : ""}" data-b="${esc(b.path)}"><img src="${T(b.path)}" alt="" loading="lazy"><small>${b.w}×${b.h}</small></div>`).join("") || '<p class="note">TMDB nie ma kadrów tego filmu — wgraj własny plik albo wklej link.</p>' : '<p class="note">Aby zobaczyć kadry z TMDB, najpierw znajdź film (krok 1).</p>';
+  $("#ps").innerHTML = d ? d.posters.map(b => `<div class="img${tm.poster === b.path ? " on" : ""}" data-p="${esc(b.path)}"><img src="${T(b.path, "w185")}" alt="" loading="lazy"></div>`).join("") || '<p class="note">TMDB nie ma plakatów tego filmu.</p>' : '<p class="note">Aby zobaczyć plakaty z TMDB, najpierw znajdź film (krok 1).</p>';
+  $("#bd").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.backdrop = x.dataset.b; setMode("hero", "tmdb"); drawImages(); };
+  $("#ps").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.poster = x.dataset.p; setMode("poster", "tmdb"); drawImages(); };
 }
 async function doSearch() {
   const q = $("#sq").value.trim(); if (!q) return toast("Wpisz tytuł filmu.", "err");
@@ -152,22 +177,26 @@ async function doSearch() {
 }
 async function pick(id, el) {
   document.querySelectorAll(".cand").forEach(x => x.classList.remove("on")); el.classList.add("on");
+  const onlyImg = !isNew && $("#onlyImg") && $("#onlyImg").checked;
   tmdbData = await api("/api/movie?id=" + id);
-  collect(); cur.film = {...tmdbData.film}; tm = {poster: tmdbData.poster_default, backdrop: tmdbData.backdrop_default}; hero = "tmdb";
-  const keep = cur.description; render();
+  collect();
+  if (!onlyImg) cur.film = {...tmdbData.film};
+  tm = {poster: tmdbData.poster_default, backdrop: tmdbData.backdrop_default};
+  if (isNew) { sel.hero.mode = "tmdb"; sel.poster.mode = "tmdb"; }
+  render();
   $("#sq").value = tmdbData.film.title; $("#sd").value = tmdbData.film.director; $("#sy").value = tmdbData.film.year;
-  $("#candNote").textContent = "Dane filmu uzupełnione. Wybierz kadr poniżej (kliknij zdjęcie) albo wgraj własne.";
-  document.querySelector('[data-k=description]').value = keep;
+  $("#candNote").textContent = onlyImg ? "Zdjęcia z TMDB gotowe — kliknij wybrany kadr lub plakat poniżej." : "Dane filmu uzupełnione. Wybierz kadr i plakat poniżej (kliknij zdjęcie) albo użyj własnego pliku lub linku.";
   $("#bd").scrollIntoView({behavior: "smooth", block: "center"});
 }
 function useOverview() { if (tmdbData) document.querySelector('[data-k=description]').value = tmdbData.overview; }
 function collect() {
   document.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (k.startsWith("f.")) { cur.film = cur.film || {}; cur.film[k.slice(2)] = i.value.trim(); } else cur[k] = i.value.trim(); });
 }
+const spec = (kind, path) => ({mode: sel[kind].mode, path, upload: sel[kind].upload, url: sel[kind].url});
 $("#saveBtn").onclick = () => guard(async () => {
   collect();
   const ev = {...cur, number: Number(cur.number)};
-  const r = await api("/api/save", {event: ev, isNew, tmdb: tm, hero, upload});
+  const r = await api("/api/save", {event: ev, isNew, hero: spec("hero", tm.backdrop), poster: spec("poster", tm.poster)});
   toast(`Zapisano „${r.summary.title}”. Podgląd: http://localhost:8123/wydarzenie.html?id=${r.id}\nAby pokazać zmianę na stronie w internecie, kliknij „Opublikuj na stronie”.`);
   await loadList(); await openEvent(r.id);
 }, $("#saveBtn"));

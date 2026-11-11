@@ -41,7 +41,7 @@ window.EVENTS = [
   "image": "img/226-20261111233219.jpg",
   "summary": "",
   "gallery": [],
-  "poster": "img/tmdb/3nsFrrmaUGyoiqAMRolkqPPWv01.jpg",
+  "poster": "img/226-plakat-20261111235511.jpg",
   "backdrop": "img/tmdb/gKW9lQc8418OyyAXLKE0qGuh5Or.jpg"
  },
  {

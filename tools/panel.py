@@ -4,7 +4,7 @@ Uruchomienie: dwuklik na uruchom_panel.bat albo:  python tools/panel.py
 Panel słucha tylko na 127.0.0.1 (niedostępny z sieci). Klucz TMDB: tools/KLUCZ_TMDB.txt.
 Używa tylko biblioteki standardowej Pythona (opcjonalnie Pillow do zmniejszania własnych zdjęć).
 """
-import base64, io, json, os, re, subprocess, sys, time, unicodedata, urllib.parse, urllib.request
+import base64, io, ipaddress, json, os, re, socket, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -151,23 +151,92 @@ def download(path, size):
     return "img/tmdb/" + path[1:]
 
 
-def save_upload(name, b64, number):
-    data = base64.b64decode(b64.split(",")[-1])
+MAX_DOWNLOAD = 25 * 1024 * 1024
+
+
+def fetch_url(url):
+    """Pobiera obrazek z podanego linku (tylko http/https, bez adresów lokalnych, limit 25 MB)."""
+    u = urllib.parse.urlparse((url or "").strip())
+    if u.scheme not in ("http", "https") or not u.hostname:
+        raise ValueError("Link musi zaczynać się od http:// lub https://")
+    try:
+        for fam, _, _, _, addr in socket.getaddrinfo(u.hostname, None):
+            ip = ipaddress.ip_address(addr[0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                raise ValueError("Linki do adresów lokalnych są zablokowane.")
+    except socket.gaierror:
+        raise ValueError("Nie mogę połączyć się z tym adresem. Sprawdź link.")
+    req = urllib.request.Request(url.strip(), headers={"User-Agent": "Mozilla/5.0 (kdd-panel)", "Accept": "image/*,*/*;q=0.8"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = r.read(MAX_DOWNLOAD + 1)
+    except urllib.error.HTTPError as e:
+        raise ValueError(f"Serwer odpowiedział błędem {e.code}. Link może wymagać logowania albo blokować pobieranie.")
+    except Exception as e:
+        if "CERTIFICATE" in str(e).upper():
+            raise ValueError("Nie mogę bezpiecznie połączyć się z tą stroną (problem z certyfikatem). Spróbuj innego linku albo pobierz zdjęcie i wgraj plik.")
+        raise ValueError(f"Nie udało się pobrać obrazka: {e}")
+    if len(data) > MAX_DOWNLOAD:
+        raise ValueError("Plik jest zbyt duży (limit 25 MB).")
+    return data
+
+
+def save_image(data, number, kind):
+    """Zapisuje obraz (kadr lub plakat) w img/. Zmniejsza i kompresuje, jeśli jest Pillow."""
     stamp = time.strftime("%Y%m%d%H%M%S")
+    base = f"img/{number}-{stamp}" if kind == "hero" else f"img/{number}-plakat-{stamp}"
+    limit = 2400 if kind == "hero" else 1000
     try:
         from PIL import Image
-        im = Image.open(io.BytesIO(data)).convert("RGB")
-        if im.width > 2400:
-            im = im.resize((2400, round(im.height * 2400 / im.width)))
-        rel = f"img/{number}-{stamp}.jpg"
-        im.save(os.path.join(ROOT, rel), "JPEG", quality=86, optimize=True)
     except ImportError:
-        ext = os.path.splitext(name)[1].lower()
-        if ext not in (".jpg", ".jpeg", ".png", ".webp"):
-            raise ValueError("Dozwolone formaty: jpg, png, webp")
-        rel = f"img/{number}-{stamp}{ext}"
-        open(os.path.join(ROOT, rel), "wb").write(data)
+        Image = None
+    if Image:
+        try:
+            im = Image.open(io.BytesIO(data))
+            im.load()
+        except Exception:
+            raise ValueError("To nie wygląda na obraz (obsługiwane: jpg, png, webp).")
+        im = im.convert("RGB")
+        if im.width > limit:
+            im = im.resize((limit, round(im.height * limit / im.width)))
+        rel = base + ".jpg"
+        im.save(os.path.join(ROOT, rel), "JPEG", quality=86, optimize=True)
+        return rel
+    ext = ".jpg" if data[:3] == bytes([0xFF, 0xD8, 0xFF]) else ".png" if data[:4] == bytes([0x89, 0x50, 0x4E, 0x47]) else None
+    if not ext and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        ext = ".webp"
+    if not ext:
+        raise ValueError("To nie wygląda na obraz (obsługiwane: jpg, png, webp).")
+    rel = base + ext
+    open(os.path.join(ROOT, rel), "wb").write(data)
     return rel
+
+
+def apply_image(cur, kind, spec, number):
+    """kind: 'hero' (kadr) albo 'poster'. spec: {mode: keep|tmdb|upload|url, path, upload, url}."""
+    spec = spec or {}
+    mode = spec.get("mode", "keep")
+    if mode == "keep":
+        return
+    if mode == "tmdb":
+        if not spec.get("path"):
+            raise ValueError("Wybierz zdjęcie z TMDB albo zmień źródło.")
+        if kind == "hero":
+            cur["backdrop"] = download(spec["path"], "w1280")
+            cur["image"] = ""
+        else:
+            cur["poster"] = download(spec["path"], "w780")
+        return
+    if mode == "upload":
+        if not spec.get("upload"):
+            raise ValueError("Wybierz plik ze zdjęciem.")
+        data = base64.b64decode(spec["upload"]["data"].split(",")[-1])
+    elif mode == "url":
+        data = fetch_url(spec.get("url"))
+    else:
+        raise ValueError("Nieznane źródło zdjęcia.")
+    rel = save_image(data, number, kind)
+    cur["image" if kind == "hero" else "poster"] = rel
 
 
 def do_save(p):
@@ -196,22 +265,15 @@ def do_save(p):
     cur["film"] = film
     cur["number"] = number
     for k in FIELDS:
-        if k in ev:
+        if k in ev and k != "number":
             v = ev[k]
-            if k == "number":
-                continue
             if v in ("", None):
                 cur.pop(k, None) if k in ("series", "badge", "note", "time") else cur.__setitem__(k, "")
             else:
                 cur[k] = v
-    tm, hero = p.get("tmdb") or {}, p.get("hero", "keep")
-    if tm.get("poster"):
-        cur["poster"] = download(tm["poster"], "w780")
-    if hero == "tmdb" and tm.get("backdrop"):
-        cur["backdrop"] = download(tm["backdrop"], "w1280")
-        cur["image"] = ""
-    elif hero == "upload" and p.get("upload"):
-        cur["image"] = save_upload(p["upload"]["name"], p["upload"]["data"], number)
+    # zdjęcia najpierw (jeśli się nie uda, nic nie zapisujemy w danych)
+    apply_image(cur, "hero", p.get("hero"), number)
+    apply_image(cur, "poster", p.get("poster"), number)
     write(head, events)
     return {"id": cur["id"], "summary": summary(cur)}
 
