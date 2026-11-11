@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel wydarzeń — Kino z Dianą</title>
+<link rel="stylesheet" href="/fonts.css">
+<style>
+:root{--bg:#0a0a0a;--bg2:#141414;--bg3:#1c1c1c;--fg:#f4efe9;--muted:#a39d96;--accent:#ff8a6b;--accent2:#ffd9b0;--line:#2c2c2c;--ok:#7bd88f;--err:#ff6b6b}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3{font-family:Antonio,"Arial Narrow",sans-serif;text-transform:uppercase;color:var(--accent);line-height:1.05;font-weight:700}
+h2{font-size:1.6rem;margin-bottom:.8rem}h3{font-size:1.15rem;margin:1.4rem 0 .6rem}
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.94);border-bottom:1px solid var(--line);padding:.8rem 1.4rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+header h1{font-size:1.5rem}header .sp{flex:1}
+.pill{font-size:.85rem;color:var(--muted)}
+.pill b{color:var(--accent2)}
+button,.btn{font:600 .95rem Inter,sans-serif;border-radius:99px;padding:.6rem 1.2rem;cursor:pointer;border:2px solid var(--fg);background:none;color:var(--fg);transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#111}
+button.primary:hover{background:var(--accent2);border-color:var(--accent2);color:#111}
+button:disabled{opacity:.4;cursor:default}
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 62px)}
+aside{border-right:1px solid var(--line);padding:1rem;background:var(--bg2);overflow:auto;max-height:calc(100vh - 62px);position:sticky;top:62px}
+main{padding:1.4rem 2rem 6rem;max-width:1100px}
+input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:.5rem;padding:.55rem .75rem;font:inherit}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{min-height:5.5rem;resize:vertical}
+label{display:block;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
+.row{display:grid;gap:.8rem;margin-bottom:.8rem}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:1fr 1fr 1fr}.c4{grid-template-columns:repeat(4,1fr)}
+.item{display:flex;gap:.7rem;align-items:center;padding:.45rem;border-radius:.5rem;cursor:pointer;border:1px solid transparent}
+.item:hover{background:var(--bg3)}.item.on{border-color:var(--accent);background:var(--bg3)}
+.item img,.item .ph{width:44px;height:30px;object-fit:cover;border-radius:.25rem;background:var(--bg);flex:none}
+.item b{display:block;font-size:.9rem;line-height:1.2}.item small{color:var(--muted)}
+.cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem}
+.cand{background:var(--bg3);border:2px solid var(--line);border-radius:.6rem;padding:.5rem;cursor:pointer;text-align:center;font-size:.85rem}
+.cand:hover{border-color:var(--accent2)}.cand.on{border-color:var(--accent)}
+.cand img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:.4rem;background:var(--bg);margin-bottom:.4rem}
+.cand b{display:block}.cand small{color:var(--muted)}.cand .m{color:var(--ok);font-size:.75rem}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem}
+.img{position:relative;border:3px solid transparent;border-radius:.5rem;overflow:hidden;cursor:pointer;background:var(--bg3)}
+.img img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.img.on{border-color:var(--accent)}.img.on::after{content:"✓ wybrany";position:absolute;top:.4rem;left:.4rem;background:var(--accent);color:#111;font:700 .75rem Inter;padding:.15rem .5rem;border-radius:99px}
+.img small{position:absolute;right:.4rem;bottom:.3rem;background:rgba(0,0,0,.7);padding:0 .4rem;border-radius:.3rem;font-size:.7rem}
+.posters .img img{aspect-ratio:2/3}.posters{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.cur{display:flex;gap:1rem;align-items:center;margin-bottom:.8rem;padding:.6rem;border:1px dashed var(--line);border-radius:.5rem}
+.cur img{height:80px;border-radius:.3rem}
+.radio{display:flex;gap:1.2rem;flex-wrap:wrap;margin:.5rem 0}.radio label{text-transform:none;letter-spacing:0;font-size:.95rem;color:var(--fg);display:flex;gap:.4rem;align-items:center}
+.radio input{width:auto}
+.note{color:var(--muted);font-size:.85rem}
+.msg{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);padding:.8rem 1.4rem;border-radius:.6rem;background:var(--bg3);border:1px solid var(--line);max-width:90vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6);white-space:pre-wrap}
+.msg.ok{border-color:var(--ok)}.msg.err{border-color:var(--err)}
+.bar{position:fixed;inset:auto 0 0 320px;background:rgba(10,10,10,.95);border-top:1px solid var(--line);padding:.8rem 2rem;display:flex;gap:1rem;align-items:center;z-index:15}
+details{border:1px solid var(--line);border-radius:.6rem;padding:.6rem .9rem;margin-top:1rem}summary{cursor:pointer;color:var(--accent2)}
+.hide{display:none!important}
+@media(max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;max-height:300px}.bar{inset:auto 0 0 0}.c3,.c4{grid-template-columns:1fr 1fr}}
+</style></head>
+<body>
+<header><h1>Panel wydarzeń</h1><span class="pill" id="pending"></span><span class="sp"></span>
+<button id="newBtn">+ Nowe wydarzenie</button><button id="pubBtn" class="primary">Opublikuj na stronie</button></header>
+<div class="layout">
+<aside><label>Szukaj w istniejących</label><input id="filter" placeholder="tytuł, reżyser, numer…" style="margin-bottom:.8rem"><div id="list"></div></aside>
+<main id="main"><h2>Witaj</h2><p class="note">Wybierz wydarzenie z listy po lewej, żeby je poprawić, albo kliknij „+ Nowe wydarzenie”.</p></main>
+</div>
+<div class="bar hide" id="saveBar"><button class="primary" id="saveBtn">Zapisz</button><span class="note" id="saveNote">Zapis dzieje się na Twoim komputerze. Na stronie w internecie zmiana pojawi się po kliknięciu „Opublikuj na stronie”.</span></div>
+<div class="msg hide" id="msg"></div>
+
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T = (p, w = "w300") => "https://image.tmdb.org/t/p/" + w + p;
+const local = p => !p ? "" : /^https?:/.test(p) ? p : "/" + p;
+let events = [], nextNumber = 1, cur = null, isNew = false, tm = {poster: null, backdrop: null}, hero = "keep", upload = null, tmdbData = null;
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json", "X-Panel": "1"}, body: JSON.stringify(body)} : {});
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || "Błąd " + r.status); return j;
+}
+function toast(text, kind = "ok", ms = 6000) { const m = $("#msg"); m.textContent = text; m.className = "msg " + kind; clearTimeout(toast.t); toast.t = setTimeout(() => m.classList.add("hide"), ms); }
+async function guard(fn, btn) { try { if (btn) btn.disabled = true; return await fn(); } catch (e) { toast(e.message, "err", 9000); } finally { if (btn) btn.disabled = false; } }
+
+async function loadList() {
+  const d = await api("/api/events"); events = d.events; nextNumber = d.nextNumber; drawList();
+  const s = await api("/api/status"); $("#pending").innerHTML = s.changes ? `Niewysłane zmiany: <b>${s.changes}</b>` : "Wszystko opublikowane";
+}
+function drawList() {
+  const q = $("#filter").value.toLowerCase();
+  $("#list").innerHTML = events.filter(e => (e.title + " " + e.director + " " + e.number).toLowerCase().includes(q)).slice(0, 120).map(e =>
+    `<div class="item${cur && !isNew && cur.id === e.id ? " on" : ""}" data-id="${esc(e.id)}">${e.image ? `<img src="${esc(local(e.image))}" alt="" loading="lazy">` : '<div class="ph"></div>'}<div><b>#${e.number} ${esc(e.title)}</b><small>${esc(e.date)}${e.time ? " · " + esc(e.time) : ""}</small></div></div>`).join("");
+}
+$("#filter").oninput = drawList;
+$("#list").onclick = ev => { const it = ev.target.closest(".item"); if (it) guard(() => openEvent(it.dataset.id)); };
+$("#newBtn").onclick = () => openNew();
+
+function blank() { return {number: nextNumber, date: "", time: "", format: "Film + dyskusja", series: "", badge: "", note: "", description: "", ticketUrl: "", film: {}}; }
+function openNew() { cur = blank(); isNew = true; tm = {poster: null, backdrop: null}; hero = "tmdb"; upload = null; tmdbData = null; render(); drawList(); }
+async function openEvent(id) { cur = await api("/api/event?id=" + encodeURIComponent(id)); isNew = false; tm = {poster: null, backdrop: null}; hero = "keep"; upload = null; tmdbData = null; render(); drawList(); scrollTo(0, 0); }
+
+const F = (k, label, v, ph = "") => `<div><label>${label}</label><input data-k="${k}" value="${esc(v)}" placeholder="${esc(ph)}"></div>`;
+function render() {
+  const e = cur, f = e.film || {}, curImg = e.image || e.backdrop || e.poster;
+  $("#saveBar").classList.remove("hide");
+  $("#main").innerHTML = `
+  <h2>${isNew ? "Nowe wydarzenie" : "#" + e.number + " " + esc(f.title)}</h2>
+  <h3>1. Znajdź film w TMDB</h3>
+  <div class="row c4"><div><label>Tytuł</label><input id="sq" value="${esc(f.title || "")}" placeholder="np. Słodkie życie"></div><div><label>Reżyser (opcjonalnie)</label><input id="sd" value="${esc(f.director || "")}"></div><div><label>Rok produkcji (opcjonalnie)</label><input id="sy" value="${esc(f.year || "")}"></div><div style="align-self:end"><button id="sgo" class="primary" style="width:100%">Szukaj</button></div></div>
+  <div id="cands" class="cands"></div>
+  <p class="note" id="candNote">${isNew ? "Wpisz tytuł i kliknij Szukaj. Wybierz film, a ja uzupełnię dane i pokażę zdjęcia." : "Możesz pobrać dane ponownie, jeśli chcesz zmienić film lub kadr."}</p>
+
+  <h3>2. Kadr w sekcji głównej i na kafelkach</h3>
+  <div class="cur">${curImg ? `<img src="${esc(local(curImg))}" alt="">` : ""}<div><b>Obecny kadr</b><div class="note">${esc(curImg || "brak")}</div></div></div>
+  <div class="radio"><label><input type="radio" name="hero" value="keep" ${hero === "keep" ? "checked" : ""}> Zostaw obecny</label><label><input type="radio" name="hero" value="tmdb" ${hero === "tmdb" ? "checked" : ""}> Wybrany z TMDB (poniżej)</label><label><input type="radio" name="hero" value="upload" ${hero === "upload" ? "checked" : ""}> Własne zdjęcie</label></div>
+  <div id="bd" class="imgs"></div>
+  <div class="row c2" style="margin-top:.8rem"><div><label>Własne zdjęcie (najlepiej poziome, min. 1600 px szerokości)</label><input type="file" id="file" accept="image/*"></div><div id="uprev"></div></div>
+  <h3 style="margin-top:1rem">Plakat (strona wydarzenia i katalog filmów)</h3><div id="ps" class="imgs posters"></div>
+
+  <h3>3. Szczegóły wydarzenia</h3>
+  <div class="row c4">${F("number", "Numer spotkania", e.number)}<div><label>Data</label><input type="date" data-k="date" value="${esc(e.date)}"></div>${F("time", "Godzina (np. 19:00)", e.time, "19:00")}${F("badge", "Plakietka (np. Przedpremiera)", e.badge)}</div>
+  <div class="row c2">${F("ticketUrl", "Link do biletów", e.ticketUrl, "https://bilety.charlie.pl/…")}${F("note", "Goście / uwagi", e.note)}</div>
+  <div class="row c2">${F("series", "Cykl (np. Cinema Italia Oggi)", e.series)}${F("format", "Format", e.format)}</div>
+  <label>Opis wydarzenia <span class="note" style="text-transform:none;letter-spacing:0">(pierwsze zdanie pokazuje się w żółtym pasku na stronie głównej)</span></label>
+  <textarea data-k="description">${esc(e.description)}</textarea>
+  <div style="margin:.4rem 0 1rem"><button id="useOv" ${tmdbData ? "" : "disabled"}>Wstaw opis filmu z TMDB</button></div>
+
+  <details ${isNew ? "" : ""}><summary>Dane filmu (uzupełniają się z TMDB, można poprawić)</summary><div style="margin-top:.8rem">
+    <div class="row c3">${F("f.title", "Tytuł", f.title)}${F("f.director", "Reżyseria", f.director)}${F("f.year", "Rok", f.year)}</div>
+    <div class="row c3">${F("f.original", "Tytuł oryginalny", f.original)}${F("f.country", "Kraj", f.country)}${F("f.runtime", "Czas trwania", f.runtime)}</div>
+    <div class="row c3">${F("f.genre", "Gatunek", f.genre)}${F("f.screenplay", "Scenariusz", f.screenplay)}${F("f.cinematography", "Zdjęcia", f.cinematography)}</div>
+    <div class="row c3">${F("f.music", "Muzyka", f.music)}${F("f.cast", "Obsada", f.cast)}${F("f.distributor", "Dystrybutor", f.distributor)}</div></div></details>`;
+  drawImages();
+  $("#sgo").onclick = () => guard(doSearch, $("#sgo"));
+  $("#sq").onkeydown = ev => { if (ev.key === "Enter") $("#sgo").click(); };
+  document.querySelectorAll('input[name=hero]').forEach(r => r.onchange = () => hero = r.value);
+  $("#file").onchange = readFile; $("#useOv").onclick = useOverview;
+  if (isNew && !f.title) $("#sq").focus();
+}
+function drawImages() {
+  if (!$("#bd")) return;
+  const d = tmdbData;
+  $("#bd").innerHTML = d ? d.backdrops.map(b => `<div class="img${tm.backdrop === b.path ? " on" : ""}" data-b="${esc(b.path)}"><img src="${T(b.path)}" alt="" loading="lazy"><small>${b.w}×${b.h}</small></div>`).join("") || '<p class="note">TMDB nie ma kadrów tego filmu — wgraj własne zdjęcie.</p>' : '<p class="note">Najpierw znajdź film (krok 1), a pokażę dostępne kadry.</p>';
+  $("#ps").innerHTML = d ? d.posters.map(b => `<div class="img${tm.poster === b.path ? " on" : ""}" data-p="${esc(b.path)}"><img src="${T(b.path, "w185")}" alt="" loading="lazy"></div>`).join("") : "";
+  $("#bd").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.backdrop = x.dataset.b; hero = "tmdb"; document.querySelector('input[name=hero][value=tmdb]').checked = true; drawImages(); };
+  $("#ps").onclick = ev => { const x = ev.target.closest(".img"); if (!x) return; tm.poster = tm.poster === x.dataset.p ? null : x.dataset.p; drawImages(); };
+}
+function readFile() {
+  const file = $("#file").files[0]; if (!file) return;
+  const r = new FileReader(); r.onload = () => { upload = {name: file.name, data: r.result}; hero = "upload"; document.querySelector('input[name=hero][value=upload]').checked = true; $("#uprev").innerHTML = `<img src="${r.result}" style="height:90px;border-radius:.4rem" alt="">`; }; r.readAsDataURL(file);
+}
+async function doSearch() {
+  const q = $("#sq").value.trim(); if (!q) return toast("Wpisz tytuł filmu.", "err");
+  $("#candNote").textContent = "Szukam…";
+  const d = await api(`/api/search?q=${encodeURIComponent(q)}&year=${encodeURIComponent($("#sy").value.trim())}&director=${encodeURIComponent($("#sd").value.trim())}`);
+  $("#candNote").textContent = d.results.length ? "Kliknij właściwy film:" : "Nic nie znaleziono. Spróbuj innego tytułu (np. oryginalnego) albo bez roku.";
+  $("#cands").innerHTML = d.results.map(c => `<div class="cand" data-id="${c.id}">${c.poster ? `<img src="${T(c.poster, "w185")}" alt="">` : ""}<b>${esc(c.title)}</b><small>${esc(c.year)} · ${esc(c.director || "?")}</small>${c.match ? '<div class="m">zgodny reżyser</div>' : ""}</div>`).join("");
+  $("#cands").onclick = ev => { const c = ev.target.closest(".cand"); if (c) guard(() => pick(c.dataset.id, c)); };
+}
+async function pick(id, el) {
+  document.querySelectorAll(".cand").forEach(x => x.classList.remove("on")); el.classList.add("on");
+  tmdbData = await api("/api/movie?id=" + id);
+  collect(); cur.film = {...tmdbData.film}; tm = {poster: tmdbData.poster_default, backdrop: tmdbData.backdrop_default}; hero = "tmdb";
+  const keep = cur.description; render();
+  $("#sq").value = tmdbData.film.title; $("#sd").value = tmdbData.film.director; $("#sy").value = tmdbData.film.year;
+  $("#candNote").textContent = "Dane filmu uzupełnione. Wybierz kadr poniżej (kliknij zdjęcie) albo wgraj własne.";
+  document.querySelector('[data-k=description]').value = keep;
+  $("#bd").scrollIntoView({behavior: "smooth", block: "center"});
+}
+function useOverview() { if (tmdbData) document.querySelector('[data-k=description]').value = tmdbData.overview; }
+function collect() {
+  document.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (k.startsWith("f.")) { cur.film = cur.film || {}; cur.film[k.slice(2)] = i.value.trim(); } else cur[k] = i.value.trim(); });
+}
+$("#saveBtn").onclick = () => guard(async () => {
+  collect();
+  const ev = {...cur, number: Number(cur.number)};
+  const r = await api("/api/save", {event: ev, isNew, tmdb: tm, hero, upload});
+  toast(`Zapisano „${r.summary.title}”. Podgląd: http://localhost:8123/wydarzenie.html?id=${r.id}\nAby pokazać zmianę na stronie w internecie, kliknij „Opublikuj na stronie”.`);
+  await loadList(); await openEvent(r.id);
+}, $("#saveBtn"));
+$("#pubBtn").onclick = () => guard(async () => {
+  if (!confirm("Opublikować wszystkie zapisane zmiany na stronie w internecie?")) return;
+  const r = await api("/api/publish", {message: cur && cur.film && cur.film.title ? `Wydarzenie #${cur.number}: ${cur.film.title}` : "Aktualizacja wydarzeń z panelu"});
+  toast(r.text, r.ok ? "ok" : "err", 12000); await loadList();
+}, $("#pubBtn"));
+guard(loadList);
+</script></body></html>

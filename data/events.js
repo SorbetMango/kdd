@@ -37,8 +37,8 @@ window.EVENTS = [
    "original": "The Golden Spurtle"
   },
   "description": "",
-  "ticketUrl": "",
-  "image": "",
+  "ticketUrl": "https://www.charlie.pl/index.php?i=film&id=1791304778",
+  "image": "img/226-20261111233219.jpg",
   "summary": "",
   "gallery": [],
   "poster": "img/tmdb/3nsFrrmaUGyoiqAMRolkqPPWv01.jpg",
