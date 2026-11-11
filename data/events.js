@@ -15,7 +15,7 @@
     series      – nazwa cyklu/przeglądu (opcjonalnie)
     note        – goście, dodatkowe informacje (opcjonalnie)
     venue/city  – tylko jeśli spotkanie jest poza Kinem Charlie
-    time        – godzina, np. "18:30" (zostaw "" jeśli nieznana)
+    time        – godzina, np. "18:30". Dla minionych wydarzeń zostaw "". Dla przyszłych wpisz godzinę; "??:??" = placeholder do uzupełnienia
     description – opis wydarzenia (akapity oddzielaj pustą linią)
     ticketUrl   – link do biletów (zostaw "" jeśli jeszcze nie ma)
     image       – ścieżka do plakatu/kadru, np. "img/214.jpg" (opcjonalnie)
@@ -28,7 +28,7 @@ window.EVENTS = [
   "id": "226-najlepsza-owsianka-na-swiecie",
   "number": 226,
   "date": "2026-11-17",
-  "time": "",
+  "time": "19:00",
   "format": "Film + dyskusja",
   "film": {
    "title": "Najlepsza owsianka na świecie",
@@ -48,7 +48,7 @@ window.EVENTS = [
   "id": "225-przez-sciane",
   "number": 225,
   "date": "2026-11-11",
-  "time": "",
+  "time": "19:00",
   "format": "Film + dyskusja",
   "film": {
    "title": "Przez ścianę",

@@ -256,3 +256,13 @@ section{padding:clamp(3.5rem,7vw,8rem) var(--pad)}
 @media(max-width:860px){.hero,.hero.ev{min-height:0}}
 @media(max-width:860px){.tile .t-date{display:none}}
 @media(max-width:560px){.top nav{gap:.6rem}.top nav a{letter-spacing:.04em}}
+
+/* logo przed nazwą w menu — wysokość liczona względem czcionki napisu (1.3em ≈ wysokość tekstu) */
+.brand{display:inline-flex;align-items:center;gap:.5em}
+.brand img{height:1.3em;width:auto;display:block}
+
+/* telefon: mniejszy odstęp między menu a treścią */
+@media(max-width:860px){
+  .hero,.hero.ev{padding-top:3.5rem}
+  .page-head{padding-top:4.2rem}
+}

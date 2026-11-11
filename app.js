@@ -3,8 +3,9 @@
   const S = window.SITE;
   const ALL = window.EVENTS.slice().sort((a, b) => b.date.localeCompare(a.date) || b.number - a.number);
   const now = new Date();
-  const today = new Date(now - now.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-  const isUpcoming = e => e.date >= today;
+  // Początek wydarzenia (czas lokalny odwiedzającego). Bez godziny: wydarzenie trwa do końca dnia.
+  const startOf = e => { const m = /^(\d{1,2}):(\d{2})$/.exec(e.time || ""); return new Date(e.date + "T" + (m ? m[1].padStart(2, "0") + ":" + m[2] : "23:59") + ":00"); };
+  const isUpcoming = e => startOf(e) > new Date();      // po godzinie rozpoczęcia wydarzenie ustępuje następnemu
   const D = d => new Date(d + "T12:00:00");
   const fmt = d => D(d).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
   const fmtShort = d => D(d).toLocaleDateString("pl-PL", { day: "numeric", month: "long" });
@@ -19,7 +20,7 @@
 
   /* ---------- menu i stopka ---------- */
   const nav = [["index.html", "Start", "home"], ["wydarzenia.html", "Wydarzenia", "events"], ["filmy.html", "Filmy", "films"], ["index.html#dolacz", "Dołącz", ""]];
-  $("#header").outerHTML = `<header class="top"><a class="brand" href="index.html">Kino z Dianą</a><nav>${
+  $("#header").outerHTML = `<header class="top"><a class="brand" href="index.html"><img src="img/logo.png" alt="" width="177" height="240">Kino z Dianą</a><nav>${
     nav.map(([u, t, k]) => `<a href="${u}" class="${k === page ? "on" : ""}">${t}</a>`).join("")}</nav></header>`;
   const top = $(".top"), onScroll = () => top.classList.toggle("solid", scrollY > 30);
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
@@ -36,7 +37,7 @@
 
   /* ---------- START ---------- */
   if (page === "home") {
-    const upcoming = ALL.filter(isUpcoming).sort((a, b) => a.date.localeCompare(b.date));
+    const upcoming = ALL.filter(isUpcoming).sort((a, b) => startOf(a) - startOf(b));
     const past = ALL.filter(e => !isUpcoming(e));
     const f = upcoming[0] || ALL[0], src = wide(f);
 
