@@ -80,7 +80,7 @@
     $("#count").textContent = ALL.length + " spotkań · " + years[years.length - 1] + "–" + years[0];
     $("#chips").innerHTML = [["all", "Wszystkie"], ["up", "Nadchodzące"], ["past", "Archiwum"]].map(([m, t]) => `<button class="chip${m === "all" ? " on" : ""}" data-m="${m}">${t}</button>`).join("")
       + `<span class="sep"></span>` + years.map(y => `<button class="chip" data-y="${y}">${y}</button>`).join("");
-    const row = e => `<a class="row" href="${href(e)}"><span class="r-num">#${e.number}</span><span class="r-date">${D(e.date).getDate()} ${mon(e.date)}</span>
+    const row = e => `<a class="row${isUpcoming(e) ? " upc" : ""}" href="${href(e)}"><span class="r-num">#${e.number}</span><span class="r-date">${D(e.date).getDate()} ${mon(e.date)}</span>
       <span class="r-main"><b>${esc(e.film.title)}</b><i>${esc(e.film.director)}${e.note ? " · " + esc(e.note) : ""}</i></span>
       <span class="r-tags">${isUpcoming(e) ? '<span class="tag">wkrótce</span>' : ""}${e.badge ? `<span class="tag">${esc(e.badge)}</span>` : ""}${e.series ? `<span class="tag past">${esc(e.series)}</span>` : ""}</span>
       <span class="r-thumb">${wide(e) ? `<img src="${esc(wide(e))}" alt="" loading="lazy">` : ""}</span></a>`;
@@ -145,7 +145,7 @@
       ["Film", [f.genre, f.original, f.country, f.year].filter(Boolean).join(" · ")], ["Reżyseria", f.director], ["Scenariusz", f.screenplay],
       ["Zdjęcia", f.cinematography], ["Muzyka", f.music], ["Obsada", f.cast], ["Czas trwania", f.runtime], ["Dystrybutor", f.distributor]]
       .filter(r => r[1]).map(r => `<div><dt>${r[0]}</dt><dd>${r[2] ? r[1] : esc(r[1])}</dd></div>`).join("");
-    $("#event").innerHTML = `<section class="hero ev"><div class="hero-text">
+    $("#event").innerHTML = `<section class="hero ev${up ? " live" : ""}"><div class="hero-text">
         ${e.badge ? `<div class="badge">${esc(e.badge)}</div><br>` : ""}
         <div class="eyebrow">Spotkanie #${e.number} <span class="tag ${up ? "" : "past"}" style="margin-left:.6rem">${up ? "nadchodzące" : "archiwum"}</span></div>
         <h1>${esc(f.title)}</h1><div class="lede">reż. ${esc(f.director)}</div></div>

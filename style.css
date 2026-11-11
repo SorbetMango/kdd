@@ -266,3 +266,11 @@ section{padding:clamp(3.5rem,7vw,8rem) var(--pad)}
   .hero,.hero.ev{padding-top:3.5rem}
   .page-head{padding-top:4.2rem}
 }
+
+/* napis w sekcji głównej: wyżej o ok. 3 px (ogonek Ą nie dotyka przycisków) i wyrównany do lewej krawędzi przycisków */
+.hero h1{position:relative;top:-.025em;margin-left:-.058em}
+
+/* aktualne (nadchodzące) wydarzenia w kolorze; archiwum zostaje czarno-białe i nabiera koloru po najechaniu */
+.hero:not(.ev) .hero-still img,.hero.live .hero-still img{filter:none}
+.up img{filter:none}
+.row.upc .r-thumb img{filter:none}
