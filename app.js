@@ -132,6 +132,12 @@
     const i = Math.max(0, ALL.findIndex(x => x.id === id)), e = ALL[i], up = isUpcoming(e), f = e.film, src = wide(e);
     const newer = ALL[i - 1], older = ALL[i + 1];
     document.title = `${f.title} — Kino z Dianą #${e.number}`;
+    const setMeta = (sel, v) => { const m = document.querySelector(sel); if (m) m.setAttribute(sel.includes("canonical") ? "href" : "content", v); };
+    const desc = (e.description || `${fmt(e.date)} · ${S.venue.name}, ${S.venue.city}. Film + dyskusja.`).split("\n")[0];
+    const url = new URL(location.href); url.search = "?id=" + encodeURIComponent(e.id);
+    setMeta('meta[name="description"]', desc); setMeta('meta[property="og:title"]', document.title); setMeta('meta[property="og:description"]', desc);
+    setMeta('meta[property="og:url"]', url.href); setMeta('link[rel="canonical"]', url.href);
+    if (e.image || e.backdrop || e.poster) setMeta('meta[property="og:image"]', new URL(e.image || e.backdrop || e.poster, location.href).href);
     const facts = [["Data", fmt(e.date) + (e.time ? ", godz. " + e.time : "")],
       ["Miejsce", `<a href="${S.venue.url}" target="_blank" rel="noopener">${esc(e.venue || S.venue.name)}, ${esc(e.city || S.venue.city)}</a>`, 1],
       ["Cykl", e.series], ["Format", e.format], ["Dodatkowo", e.note],
