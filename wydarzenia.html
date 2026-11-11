@@ -1,8 +1,9 @@
 <!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><title>Wydarzenia — Kino z Dianą</title></head>
+<link rel="stylesheet" href="style.css">
+<title>Wydarzenia — Kino z Dianą</title></head>
 <body data-page="events"><div id="header"></div>
-<section style="border:0"><div class="wrap"><h1 style="font-size:clamp(44px,7vw,84px);margin-bottom:30px">Wydarzenia</h1>
-<div class="filters"><button data-m="all" class="on">Wszystkie</button><button data-m="up">Nadchodzące</button><button data-m="past">Archiwum</button><input id="q" placeholder="Szukaj filmu, reżysera, numeru…"></div>
-<div class="grid" id="list"></div></div></section>
+<div class="page-head"><h1>Wydarzenia</h1><div class="count" id="count"></div></div>
+<div class="tools"><span id="chips" style="display:contents"></span><input id="q" placeholder="Szukaj filmu, reżysera, numeru…" aria-label="Szukaj"></div>
+<div id="list"></div>
 <div id="footer"></div><script src="data/site.js"></script><script src="data/events.js"></script><script src="app.js"></script></body></html>
