@@ -70,7 +70,7 @@
     if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
       counters.forEach(el => { el.textContent = "0"; });
       const run = el => {
-        const to = +el.dataset.count, t0 = performance.now(), dur = 10000;   // czas liczenia w ms (10 s)
+        const to = +el.dataset.count, t0 = performance.now(), dur = 7100;   // czas liczenia w ms (7,1 s = 10 s skrócone o 29%)
         const tick = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = k < 1 ? Math.round(to * (1 - Math.pow(1 - k, 2))) : to; if (k < 1) requestAnimationFrame(tick); };
         requestAnimationFrame(tick);
       };
