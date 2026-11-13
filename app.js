@@ -29,7 +29,7 @@
   /* ---------- menu i stopka ---------- */
   const nav = [["index.html", "Start", "home"], ["wydarzenia.html", "Wydarzenia", "events"], ["filmy.html", "Filmy", "films"], ["index.html#dolacz", "Dołącz", ""]];
   const skipTo = location.pathname + location.search + "#tresc";   // pełna ścieżka, bo strony wydarzeń mają <base href="../">
-  $("#header").outerHTML = `<a class="skip" href="${esc(skipTo)}">Przejdź do treści</a><header class="top"><a class="brand" href="index.html"><img src="img/logo.png" alt="" width="177" height="240">Kino z Dianą</a><nav>${
+  $("#header").outerHTML = `<a class="skip" href="${esc(skipTo)}">Przejdź do treści</a><header class="top"><a class="brand" href="index.html"><img src="img/logo.png" alt="" width="177" height="240">Kino z Dianą Dąbrowską</a><nav>${
     nav.map(([u, t, k]) => `<a href="${u}" class="${k === page ? "on" : ""}">${t}</a>`).join("")}</nav></header>`;
   const main = $("#tresc"); if (main) main.tabIndex = -1;   // link „przejdź do treści” przenosi tu fokus klawiatury
   const top = $(".top"), onScroll = () => top.classList.toggle("solid", scrollY > 30);
@@ -63,8 +63,20 @@
 
     // liczby liczone z danych
     const films = new Set(ALL.map(e => e.film.title)).size, first = ALL[ALL.length - 1];
-    $("#stats").innerHTML = `<div><b>${Math.max(...ALL.map(e => e.number))}</b><span>spotkań</span></div>
-      <div><b>${films}</b><span>filmów</span></div><div><b>${first.date.slice(0, 4)}</b><span>działamy od</span></div>`;
+    $("#stats").innerHTML = `<div><b data-count="${Math.max(...ALL.map(e => e.number))}">${Math.max(...ALL.map(e => e.number))}</b><span>spotkań</span></div>
+      <div><b data-count="${films}">${films}</b><span>filmów</span></div><div><b>${first.date.slice(0, 4)}</b><span>działamy od</span></div>`;
+    // licznik: „spotkań” i „filmów” naliczają się od zera, gdy liczby pojawią się na ekranie (bez animacji przy ograniczonych animacjach)
+    const counters = document.querySelectorAll("#stats [data-count]");
+    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      counters.forEach(el => { el.textContent = "0"; });
+      const run = el => {
+        const to = +el.dataset.count, t0 = performance.now(), dur = 10000;   // czas liczenia w ms (10 s)
+        const tick = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = k < 1 ? Math.round(to * (1 - Math.pow(1 - k, 2))) : to; if (k < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+      };
+      const io = new IntersectionObserver(list => list.forEach(en => { if (en.isIntersecting) { io.unobserve(en.target); run(en.target); } }), { threshold: 0.6 });
+      counters.forEach(el => io.observe(el));
+    }
 
     $("#upcoming").innerHTML = upcoming.length ? upcoming.map(e => `<a class="up" href="${href(e)}">${pic(wide(e))}
         <div class="up-date"><b>${D(e.date).getDate()}</b><span>${mon(e.date)}</span></div>

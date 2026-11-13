@@ -310,3 +310,27 @@ main:focus{outline:none}
   /* „Start” ukryty na telefonie — logo i nazwa i tak prowadzą na stronę główną; reszta menu mieści się wtedy od 340 px */
   .top nav a:first-child{display:none}
 }
+
+/* komputer: duży napis w sekcji głównej ma tę samą szerokość co logo z napisem w menu na górze strony
+   (prawa krawędź na ok. 49% szerokości ekranu). 6.551 = szerokość najdłuższej linii „DĄBROWSKĄ #…” przy rozmiarze 1px. */
+@media(min-width:861px){
+  .hero h1{font-size:calc((49.1vw - var(--pad)) / 6.551)}
+}
+
+/* podstrony „Wydarzenia” i „Filmy”: mniejszy nagłówek strony i mniej pustego miejsca nad nim.
+   Podpis pod nagłówkiem („226 spotkań…”, „224 filmów”) jest wyrównany do lewej krawędzi liter:
+   na „Wydarzeniach” do dolnego lewego rogu litery W (0.120 em od krawędzi bloku), na „Filmach” do litery F (0.064 em);
+   pierwsza cyfra podpisu zaczyna się 0.069 em od krawędzi swojego bloku. */
+.page-head{--h:clamp(2.4rem,4.4vw,5.2rem);--c:clamp(.85rem,1.1vw,1.2rem);padding:clamp(5.5rem,7.5vw,8.5rem) var(--pad) clamp(1rem,1.6vw,1.8rem)}
+.page-head h1{font-size:var(--h)}
+.page-head .count{font-size:var(--c);margin-top:.4rem}
+[data-page="events"] .page-head .count{margin-left:calc(var(--h)*.120 - var(--c)*.069)}
+[data-page="films"] .page-head .count{margin-left:calc(var(--h)*.064 - var(--c)*.069)}
+@media(max-width:860px){.page-head{--h:clamp(2.2rem,11vw,3.4rem);padding-top:4.4rem}}
+
+/* pełna nazwa w pasku: na wąskim telefonie zawija się do dwóch linii, żeby zmieścić się obok menu */
+@media(max-width:560px){
+  .brand{white-space:normal;line-height:1;font-size:.95rem;min-width:0;letter-spacing:.04em;gap:.4rem}
+  .brand img{flex:none}
+}
+.stats b{font-variant-numeric:tabular-nums}

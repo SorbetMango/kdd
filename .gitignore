@@ -1,2 +1,6 @@
 tools/.env
 tools/KLUCZ_TMDB.txt
+# warianty testowe strony głównej (tylko lokalnie)
+wariant-*.html
+warianty.css
+warianty.js
