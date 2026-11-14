@@ -77,8 +77,7 @@
         <h1>Kino z Dianą<br>Dąbrowską <span class="no">#${f.number}</span></h1></div>
       <figure class="hero-still">${pic(src, { lazy: false })}<figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
       <div class="hero-meta"><div class="meta"><span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>
-        <a class="btn" href="${href(f)}">Szczegóły</a>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div>
-        <div class="sub">${esc(f.format || "Film + dyskusja")}</div></div></section>
+        <a class="btn" href="${href(f)}">Szczegóły</a>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>
       ${f.description ? `<div class="banner">${esc(f.description.split("\n")[0])}</div>` : f.note ? `<div class="banner">${esc(f.note)}</div>` : ""}`;
 
     renderStats();

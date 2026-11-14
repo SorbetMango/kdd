@@ -386,3 +386,16 @@ main:focus{outline:none}
   .top nav{gap:.45rem}.top nav a{letter-spacing:.01em;padding-inline:.1rem}
   .brand{font-size:.88rem}
 }
+
+/* strona główna: „Jak wygląda spotkanie” bliżej sekcji głównej */
+.how{padding-top:clamp(1.8rem,3.2vw,3.6rem)}
+
+/* telefon, strona główna: kadr na całą szerokość od samej góry, napis z numerem leży na kadrze */
+@media(max-width:860px){
+  .hero:not(.ev){position:relative;padding-top:0}
+  .hero:not(.ev) .hero-still{margin:0 calc(-1*var(--pad)) 1.3rem;border-radius:0;aspect-ratio:auto;height:min(125vw,82svh)}
+  .hero:not(.ev) .hero-still::after{background:linear-gradient(rgba(10,10,10,.9),rgba(10,10,10,.5) 30%,transparent 52%),linear-gradient(to top,rgba(0,0,0,.88),transparent 42%)}
+  .hero:not(.ev) .hero-text{position:absolute;z-index:2;top:4.3rem;left:var(--pad);right:var(--pad)}
+  .hero:not(.ev) .hero-still figcaption{right:var(--pad)}
+  .hero:not(.ev)::before{display:none}
+}
