@@ -42,7 +42,14 @@ window.EVENTS = [
   "summary": "",
   "gallery": [],
   "poster": "img/226-plakat-20261111235511.jpg",
-  "backdrop": "img/tmdb/gKW9lQc8418OyyAXLKE0qGuh5Or.jpg"
+  "backdrop": "img/tmdb/gKW9lQc8418OyyAXLKE0qGuh5Or.jpg",
+  "focus": {
+   "m": [
+    50,
+    0,
+    133
+   ]
+  }
  },
  {
   "id": "225-przez-sciane",
