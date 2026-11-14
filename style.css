@@ -399,3 +399,11 @@ main:focus{outline:none}
   .hero:not(.ev) .hero-still figcaption{right:var(--pad)}
   .hero:not(.ev)::before{display:none}
 }
+
+/* strona główna: opis cyklu tuż pod „Jak wygląda spotkanie”, licznik równo z górą opisu, pod nim karta Diany i jej profile */
+.how:has(+ .about){padding-bottom:0}
+.how + .about{align-items:start;padding-top:clamp(2rem,3.5vw,4rem);padding-bottom:0}
+.about .lead strong{font-family:inherit;text-transform:none;letter-spacing:0;font-size:1em;font-weight:600}
+.about-side .stats{padding-top:0;border-top:0}
+.about-side .host{margin-top:1.4rem}
+.about-side .who-links{margin-top:1rem}

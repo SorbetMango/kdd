@@ -76,8 +76,8 @@
         <div class="eyebrow">${esc(f.series || S.venue.name)} <span class="muted">| ${esc(S.venue.city)}</span></div>
         <h1>Kino z Dianą<br>Dąbrowską <span class="no">#${f.number}</span></h1></div>
       <figure class="hero-still">${pic(src, { lazy: false })}<figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
-      <div class="hero-meta"><div class="meta"><span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>
-        <a class="btn" href="${href(f)}">Szczegóły</a>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>
+      <div class="hero-meta"><div class="meta"><a class="btn" href="${href(f)}">Szczegóły</a>
+        <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>
       ${f.description ? `<div class="banner">${esc(f.description.split("\n")[0])}</div>` : f.note ? `<div class="banner">${esc(f.note)}</div>` : ""}`;
 
     renderStats();
@@ -88,8 +88,8 @@
           <h3>${esc(e.film.title)}</h3><div class="dir">reż. ${esc(e.film.director)}${e.time ? " · godz. " + e.time : ""}</div></div></a>`).join("")
       : `<p class="muted">Kolejne spotkanie wkrótce — zapisz się na newsletter, żeby nie przegapić.</p>`;
 
-    const titles = past.slice(0, 16).map(e => esc(e.film.title)).join("<i>✦</i>") + "<i>✦</i>";
-    $("#ticker").innerHTML = `<div class="track">${titles}${titles}</div>`;
+    const dl = $("#diana-links");
+    if (dl) dl.innerHTML = [["Fanpage Diany", S.links.facebookPage], ["Instagram", S.links.instagram]].filter(x => x[1]).map(([t, u]) => `<a class="btn" href="${u}" target="_blank" rel="noopener">${t}</a>`).join("");
 
     $("#past").innerHTML = past.slice(0, 16).map(e => `<a class="tile" href="${href(e)}">${pic(wide(e), { small: true })}
       <span class="t-num">#${e.number}</span><div class="t-body"><div class="t-date">${fmt(e.date)}</div><h3>${esc(e.film.title)}</h3><div class="dir">${esc(e.film.director)}</div></div></a>`).join("");
