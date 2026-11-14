@@ -160,7 +160,7 @@ def build_pages(events, site, manifest):
         if fname.endswith(".html") and fname[:-5] not in ids:
             os.remove(os.path.join(folder, fname))
     # mapa strony, robots.txt, strona 404
-    urls = [base, base + "wydarzenia.html", base + "filmy.html"] + [base + f"wydarzenie/{i}.html" for i in sorted(ids)]
+    urls = [base, base + "wydarzenia.html", base + "filmy.html", base + "o-klubie.html"] + [base + f"wydarzenie/{i}.html" for i in sorted(ids)]
     write_if_changed(p("sitemap.xml"), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                      + "".join(f"  <url><loc>{e_(u)}</loc></url>\n" for u in urls) + "</urlset>\n")
     write_if_changed(p("robots.txt"), f"User-agent: *\nAllow: /\n\nSitemap: {base}sitemap.xml\n")

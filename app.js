@@ -27,10 +27,10 @@
   const page = document.body.dataset.page;
 
   /* ---------- menu i stopka ---------- */
-  const nav = [["index.html", "Start", "home"], ["wydarzenia.html", "Wydarzenia", "events"], ["filmy.html", "Filmy", "films"], ["index.html#dolacz", "Dołącz", ""]];
+  const nav = [["index.html", "Start", "home", "nav-start"], ["wydarzenia.html", "Wydarzenia", "events"], ["filmy.html", "Filmy", "films"], ["o-klubie.html", "O klubie", "about"], ["index.html#dolacz", "Dołącz", "", "nav-join"]];
   const skipTo = location.pathname + location.search + "#tresc";   // pełna ścieżka, bo strony wydarzeń mają <base href="../">
   $("#header").outerHTML = `<a class="skip" href="${esc(skipTo)}">Przejdź do treści</a><header class="top"><a class="brand" href="index.html"><img src="img/logo.png" alt="" width="177" height="240">Kino z Dianą Dąbrowską</a><nav>${
-    nav.map(([u, t, k]) => `<a href="${u}" class="${k === page ? "on" : ""}">${t}</a>`).join("")}</nav></header>`;
+    nav.map(([u, t, k, c]) => `<a href="${u}" class="${[k === page ? "on" : "", c || ""].join(" ").trim()}">${t}</a>`).join("")}</nav></header>`;
   const main = $("#tresc"); if (main) main.tabIndex = -1;   // link „przejdź do treści” przenosi tu fokus klawiatury
   const top = $(".top"), onScroll = () => top.classList.toggle("solid", scrollY > 30);
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
@@ -44,6 +44,26 @@
   </div></footer>`;
 
   const ticket = (e, label) => `<a class="btn cta" href="${esc(e.ticketUrl || S.venue.url)}" target="_blank" rel="noopener">${label} <span aria-hidden="true">→</span></a>`;
+
+  /* ---------- liczby: spotkań, filmów, od kiedy (strona główna i „O klubie”) ---------- */
+  function renderStats() {
+    // liczby liczone z danych
+    const films = new Set(ALL.map(e => e.film.title)).size, first = ALL[ALL.length - 1];
+    $("#stats").innerHTML = `<div><b data-count="${Math.max(...ALL.map(e => e.number))}">${Math.max(...ALL.map(e => e.number))}</b><span>spotkań</span></div>
+      <div><b data-count="${films}">${films}</b><span>filmów</span></div><div><b>${first.date.slice(0, 4)}</b><span>działamy od</span></div>`;
+    // licznik: „spotkań” i „filmów” naliczają się od zera, gdy liczby pojawią się na ekranie (bez animacji przy ograniczonych animacjach)
+    const counters = document.querySelectorAll("#stats [data-count]");
+    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      counters.forEach(el => { el.textContent = "0"; });
+      const run = el => {
+        const to = +el.dataset.count, t0 = performance.now(), dur = 7100;   // czas liczenia w ms (7,1 s = 10 s skrócone o 29%)
+        const tick = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = k < 1 ? Math.round(to * (1 - Math.pow(1 - k, 2))) : to; if (k < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+      };
+      const io = new IntersectionObserver(list => list.forEach(en => { if (en.isIntersecting) { io.unobserve(en.target); run(en.target); } }), { threshold: 0.6 });
+      counters.forEach(el => io.observe(el));
+    }
+  }
 
   /* ---------- START ---------- */
   if (page === "home") {
@@ -61,22 +81,7 @@
         <div class="sub">${esc(f.format || "Film + dyskusja")}</div></div></section>
       ${f.description ? `<div class="banner">${esc(f.description.split("\n")[0])}</div>` : f.note ? `<div class="banner">${esc(f.note)}</div>` : ""}`;
 
-    // liczby liczone z danych
-    const films = new Set(ALL.map(e => e.film.title)).size, first = ALL[ALL.length - 1];
-    $("#stats").innerHTML = `<div><b data-count="${Math.max(...ALL.map(e => e.number))}">${Math.max(...ALL.map(e => e.number))}</b><span>spotkań</span></div>
-      <div><b data-count="${films}">${films}</b><span>filmów</span></div><div><b>${first.date.slice(0, 4)}</b><span>działamy od</span></div>`;
-    // licznik: „spotkań” i „filmów” naliczają się od zera, gdy liczby pojawią się na ekranie (bez animacji przy ograniczonych animacjach)
-    const counters = document.querySelectorAll("#stats [data-count]");
-    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      counters.forEach(el => { el.textContent = "0"; });
-      const run = el => {
-        const to = +el.dataset.count, t0 = performance.now(), dur = 7100;   // czas liczenia w ms (7,1 s = 10 s skrócone o 29%)
-        const tick = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = k < 1 ? Math.round(to * (1 - Math.pow(1 - k, 2))) : to; if (k < 1) requestAnimationFrame(tick); };
-        requestAnimationFrame(tick);
-      };
-      const io = new IntersectionObserver(list => list.forEach(en => { if (en.isIntersecting) { io.unobserve(en.target); run(en.target); } }), { threshold: 0.6 });
-      counters.forEach(el => io.observe(el));
-    }
+    renderStats();
 
     $("#upcoming").innerHTML = upcoming.length ? upcoming.map(e => `<a class="up" href="${href(e)}">${pic(wide(e))}
         <div class="up-date"><b>${D(e.date).getDate()}</b><span>${mon(e.date)}</span></div>
@@ -93,6 +98,13 @@
     const form = $("#nl"); if (S.newsletterAction !== "#") form.action = S.newsletterAction;
     form.addEventListener("submit", ev => { if (form.getAttribute("action") === "#") { ev.preventDefault(); alert("Newsletter jeszcze nie jest podpięty — ustaw newsletterAction w data/site.js"); } });
     $("#links").innerHTML = (social.length ? social : [["Kino Charlie", S.venue.url]]).map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}<span aria-hidden="true">→</span></a>`).join("");
+  }
+
+  /* ---------- O KLUBIE ---------- */
+  if (page === "about") {
+    renderStats();
+    const btns = (social.length ? social : [["Kino Charlie", S.venue.url]]).map(([t, u]) => `<a class="btn" href="${u}" target="_blank" rel="noopener">${t}</a>`).join("");
+    document.querySelectorAll("[data-social]").forEach(el => { el.innerHTML = btns; });
   }
 
   /* ---------- WYDARZENIA: lista pogrupowana latami ---------- */
