@@ -53,8 +53,26 @@ label{display:block;font-size:.78rem;letter-spacing:.08em;text-transform:upperca
 .msg.ok{border-color:var(--ok)}.msg.err{border-color:var(--err)}
 .bar{position:fixed;inset:auto 0 0 320px;background:rgba(10,10,10,.95);border-top:1px solid var(--line);padding:.8rem 2rem;display:flex;gap:1rem;align-items:center;z-index:15}
 details{border:1px solid var(--line);border-radius:.6rem;padding:.6rem .9rem;margin-top:1rem}summary{cursor:pointer;color:var(--accent2)}
+.fo-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1.4rem;align-items:start;margin-top:.6rem}
+.fo-frame{position:relative;overflow:hidden;border-radius:.5rem;border:1px solid var(--line);background:#0a0a0a;cursor:grab;touch-action:none;user-select:none;container-type:inline-size}
+.fo-frame:active{cursor:grabbing}
+.fo-d{aspect-ratio:16/9}.fo-m{aspect-ratio:375/330;max-width:340px}
+.fo-im{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.fo-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.fo-d .fo-im{left:28%;-webkit-mask-image:linear-gradient(to right,transparent,#000 42%),linear-gradient(to top,transparent 2%,#000 30%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 42%),linear-gradient(to top,transparent 2%,#000 30%);mask-composite:intersect}
+.fo-shade{position:absolute;inset:0;pointer-events:none}
+.fo-m .fo-shade{background:linear-gradient(rgba(10,10,10,.9),rgba(10,10,10,.5) 30%,transparent 52%),linear-gradient(to top,rgba(0,0,0,.88),transparent 42%)}
+.fo-t1,.fo-t2{position:absolute;font:700 1rem/.95 Antonio,"Arial Narrow",sans-serif;text-transform:uppercase;color:var(--accent);pointer-events:none}
+.fo-t1 span{color:transparent;-webkit-text-stroke:.022em var(--accent)}
+.fo-t2{text-align:right;text-wrap:balance}
+.fo-d .fo-t1{left:4.4cqw;bottom:11.5cqw;font-size:6.6cqw}.fo-d .fo-t2{right:4.4cqw;bottom:5.5cqw;font-size:3.3cqw;max-width:36%}
+.fo-m .fo-t1{left:5cqw;top:27cqw;font-size:12cqw}.fo-m .fo-t2{right:5cqw;bottom:11cqw;font-size:8.6cqw;max-width:85%}
+.fo-sl{display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;align-items:center;margin:.7rem 0 .5rem;font-size:.8rem;color:var(--muted)}
+.fo-sl input{padding:0;accent-color:var(--accent)}
+.fo button{font-size:.8rem;padding:.35rem .9rem;border-width:1px}
+.fo-empty .fo-frame::after{content:"Najpierw wybierz zdjęcie powyżej";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:.85rem}
 .hide{display:none!important}
-@media(max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;max-height:300px}.bar{inset:auto 0 0 0}.c3,.c4{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;max-height:300px}.bar{inset:auto 0 0 0}.c3,.c4{grid-template-columns:1fr 1fr}.fo-grid{grid-template-columns:1fr}}
 </style></head>
 <body>
 <header><h1>Panel wydarzeń</h1><span class="pill" id="pending"></span><span class="sp"></span>
@@ -114,6 +132,56 @@ function imageBlock(kind) {
     <div><label>Albo link do zdjęcia (adres https://…)</label><div class="urlrow"><input id="url-${kind}" value="${esc(sel[kind].url)}" placeholder="https://…/plik.jpg"></div><div class="prev" id="uprev-${kind}"></div><div class="note">Wklej adres samego obrazka (w przeglądarce: prawy przycisk na zdjęciu → „Kopiuj adres obrazu”). Pobierze się przy zapisie.</div></div>
   </div>`;
 }
+// Kadrowanie zdjęcia w sekcji głównej: cur.focus = {d: [x, y], m: [x, y]} (procenty; d = komputer, m = telefon)
+const FO_DEF = [50, 30, 100];
+function focusBlock() {
+  const box = (k, name, reset) => `<div class="fo" data-fo="${k}"><label>${name}</label>
+    <div class="fo-frame fo-${k}"><div class="fo-im"><img alt="" draggable="false"></div><div class="fo-shade"></div><div class="fo-t1">Kino z Dianą<br>Dąbrowską <span>#${esc(cur.number)}</span></div><div class="fo-t2"></div></div>
+    <div class="fo-sl"><span>W poziomie</span><input type="range" min="0" max="100" data-ax="0"><span>W pionie</span><input type="range" min="0" max="100" data-ax="1"><span>Powiększenie</span><input type="range" min="100" max="250" data-ax="2"></div>
+    <button type="button" class="fo-reset">${reset}</button></div>`;
+  return `<h3 style="margin-top:1.4rem">Kadrowanie w sekcji głównej</h3>
+  <p class="note">Przeciągnij zdjęcie w ramce albo użyj suwaków, osobno dla komputera i telefonu. Jeśli zdjęcie nie daje się przesunąć w którąś stronę, najpierw je powiększ. Napisy w ramkach pokazują, co na stronie zasłania zdjęcie. Ustawienie zapisuje się przyciskiem „Zapisz”.</p>
+  <div class="fo-grid">${box("d", "Komputer (ekran 16:9)", "Przywróć domyślne")}${box("m", "Telefon", "Tak jak na komputerze")}</div>`;
+}
+function foGet(k) { const f = cur.focus || {}, v = (f[k] || (k === "m" && f.d) || FO_DEF).slice(); if (!(v[2] >= 100)) v[2] = 100; return v; }
+function foSet(k, v) { cur.focus = cur.focus || {}; cur.focus[k] = v.map((x, i) => Math.max(i === 2 ? 100 : 0, Math.min(i === 2 ? 250 : 100, Math.round(x)))); foDraw(); }
+function foSrc() {
+  const s = sel.hero;
+  if (s.mode === "upload" && s.upload) return s.upload.data;
+  if (s.mode === "url" && /^https?:\/\//.test(s.url)) return s.url;
+  if (s.mode === "tmdb" && tm.backdrop) return T(tm.backdrop, "w780");
+  return local(cur.image || cur.backdrop || cur.poster);
+}
+function foDraw() {
+  if (!cur) return;
+  const src = foSrc();
+  document.querySelectorAll(".fo").forEach(box => {
+    const k = box.dataset.fo, v = foGet(k), im = box.querySelector("img");
+    box.classList.toggle("fo-empty", !src);
+    if (!src) im.removeAttribute("src"); else if (im.getAttribute("src") !== src) im.setAttribute("src", src);
+    im.style.objectPosition = im.style.transformOrigin = v[0] + "% " + v[1] + "%";
+    im.style.transform = "scale(" + v[2] / 100 + ")";
+    box.querySelectorAll("input[type=range]").forEach(r => { r.value = v[+r.dataset.ax]; });
+    box.querySelector(".fo-t2").textContent = (cur.film && cur.film.title) || "";
+  });
+}
+function foWire() {
+  document.querySelectorAll(".fo").forEach(box => {
+    const k = box.dataset.fo, im = box.querySelector("img"), fr = box.querySelector(".fo-frame");
+    box.querySelectorAll("input[type=range]").forEach(r => r.oninput = () => { const v = foGet(k); v[+r.dataset.ax] = +r.value; foSet(k, v); });
+    box.querySelector(".fo-reset").onclick = () => { if (cur.focus) { delete cur.focus[k]; if (!Object.keys(cur.focus).length) delete cur.focus; } foDraw(); };
+    let st = null;
+    fr.onpointerdown = ev => { if (!im.naturalWidth) return; fr.setPointerCapture(ev.pointerId); st = {x: ev.clientX, y: ev.clientY, v: foGet(k)}; ev.preventDefault(); };
+    fr.onpointermove = ev => {
+      if (!st) return;
+      const w = im.clientWidth, h = im.clientHeight, sc = Math.max(w / im.naturalWidth, h / im.naturalHeight) * st.v[2] / 100;
+      const ox = im.naturalWidth * sc - w, oy = im.naturalHeight * sc - h;   // ile zdjęcia wystaje poza ramkę
+      foSet(k, [ox > 1 ? st.v[0] - (ev.clientX - st.x) / ox * 100 : st.v[0], oy > 1 ? st.v[1] - (ev.clientY - st.y) / oy * 100 : st.v[1], st.v[2]]);
+    };
+    fr.onpointerup = fr.onpointercancel = () => { st = null; };
+  });
+  foDraw();
+}
 function render() {
   const e = cur, f = e.film || {};
   $("#saveBar").classList.remove("hide");
@@ -126,7 +194,7 @@ function render() {
   <div id="cands" class="cands"></div>
   <p class="note" id="candNote">${isNew ? "Wpisz tytuł i kliknij Szukaj. Wybierz film, a uzupełnię dane i pokażę zdjęcia." : "Chcesz wybrać zdjęcie z TMDB? Kliknij Szukaj i wybierz film. Możesz też użyć własnego pliku albo linku poniżej."}</p>
 
-  <h3>2. Kadr w sekcji głównej i na kafelkach</h3>${imageBlock("hero")}
+  <h3>2. Kadr w sekcji głównej i na kafelkach</h3>${imageBlock("hero")}${focusBlock()}
   <h3 style="margin-top:1.4rem">3. Plakat (strona wydarzenia i katalog filmów)</h3>${imageBlock("poster")}
 
   <h3>4. Szczegóły wydarzenia</h3>
@@ -142,15 +210,15 @@ function render() {
     <div class="row c3">${F("f.original", "Tytuł oryginalny", f.original)}${F("f.country", "Kraj", f.country)}${F("f.runtime", "Czas trwania", f.runtime)}</div>
     <div class="row c3">${F("f.genre", "Gatunek", f.genre)}${F("f.screenplay", "Scenariusz", f.screenplay)}${F("f.cinematography", "Zdjęcia", f.cinematography)}</div>
     <div class="row c3">${F("f.music", "Muzyka", f.music)}${F("f.cast", "Obsada", f.cast)}${F("f.distributor", "Dystrybutor", f.distributor)}</div></div></details>`;
-  drawImages(); wireImageInputs("hero"); wireImageInputs("poster");
+  drawImages(); wireImageInputs("hero"); wireImageInputs("poster"); foWire();
   $("#sgo").onclick = () => guard(doSearch, $("#sgo"));
   $("#sq").onkeydown = ev => { if (ev.key === "Enter") $("#sgo").click(); };
   $("#useOv").onclick = useOverview;
   if (isNew && !f.title) $("#sq").focus();
 }
-function setMode(kind, mode) { sel[kind].mode = mode; const r = document.querySelector(`input[name=m-${kind}][value=${mode}]`); if (r) r.checked = true; }
+function setMode(kind, mode) { sel[kind].mode = mode; const r = document.querySelector(`input[name=m-${kind}][value=${mode}]`); if (r) r.checked = true;  if (kind === "hero") foDraw(); }
 function wireImageInputs(kind) {
-  document.querySelectorAll(`input[name=m-${kind}]`).forEach(r => r.onchange = () => sel[kind].mode = r.value);
+  document.querySelectorAll(`input[name=m-${kind}]`).forEach(r => r.onchange = () => { sel[kind].mode = r.value; if (kind === "hero") foDraw(); });
   $("#file-" + kind).onchange = () => {
     const file = $("#file-" + kind).files[0]; if (!file) return;
     const rd = new FileReader(); rd.onload = () => { sel[kind].upload = {name: file.name, data: rd.result}; setMode(kind, "upload"); $("#fprev-" + kind).innerHTML = `<img src="${rd.result}" alt="">`; }; rd.readAsDataURL(file);
@@ -160,7 +228,7 @@ function wireImageInputs(kind) {
     const p = $("#uprev-" + kind), v = sel[kind].url;
     p.innerHTML = /^https?:\/\//.test(v) ? `<img src="${esc(v)}" alt="" onerror="this.parentNode.innerHTML='<span class=note>Podglądu nie widać (strona może go blokować), ale spróbuję pobrać przy zapisie.</span>'">` : "";
   };
-  u.oninput = () => { sel[kind].url = u.value.trim(); if (sel[kind].url) setMode(kind, "url"); showUrl(); };
+  u.oninput = () => { sel[kind].url = u.value.trim(); if (sel[kind].url) setMode(kind, "url"); showUrl(); if (kind === "hero") foDraw(); };
   showUrl();
 }
 function drawImages() {

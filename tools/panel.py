@@ -274,6 +274,19 @@ def do_save(p):
                 cur.pop(k, None) if k in ("series", "badge", "note", "time") else cur.__setitem__(k, "")
             else:
                 cur[k] = v
+    # kadrowanie zdjęcia w sekcji głównej: {"d": [x, y, powiększenie], "m": [...]}; x, y w procentach 0-100, powiększenie 100-250
+    fo, out = ev.get("focus"), {}
+    if isinstance(fo, dict):
+        for k in ("d", "m"):
+            v = fo.get(k)
+            if isinstance(v, list) and len(v) in (2, 3):
+                out[k] = [max(0, min(100, round(float(x)))) for x in v[:2]]
+                if len(v) == 3 and float(v[2]) > 100:
+                    out[k].append(min(250, round(float(v[2]))))
+    if out:
+        cur["focus"] = out
+    else:
+        cur.pop("focus", None)
     # zdjęcia najpierw (jeśli się nie uda, nic nie zapisujemy w danych)
     apply_image(cur, "hero", p.get("hero"), number)
     apply_image(cur, "poster", p.get("poster"), number)

@@ -15,6 +15,10 @@
   const href = e => `wydarzenie/${encodeURIComponent(e.id)}.html`;
   const img = p => p || "";
   const wide = e => img(e.image || e.backdrop || e.poster);
+  // kadrowanie zdjęcia w sekcji głównej (ustawiane w panelu): osobno komputer (d) i telefon (m), w procentach
+  const focus = e => { const f = e.focus || {}, s = [];
+    for (const k of ["d", "m"]) if (f[k]) { s.push(`--f${k}:${+f[k][0]}% ${+f[k][1]}%`); if (f[k][2] > 100) s.push(`--fz${k}:${f[k][2] / 100}`); }
+    return s.length ? ` style="${s.join(";")}"` : ""; };
   // wymiary zdjęć i miniatury z data/images.js (tworzy je tools/build.py); bez tego pliku strona używa pełnych zdjęć
   const IMGS = window.IMGS || {};
   // <img> z wymiarami; small = miniatura (kafelki, listy, katalog)
@@ -75,7 +79,7 @@
         ${f.badge ? `<div class="badge">${esc(f.badge)}</div><br>` : ""}
         <div class="eyebrow">${esc(f.series || S.venue.name)} <span class="muted">| ${esc(S.venue.city)}</span></div>
         <h1>Kino z Dianą<br>Dąbrowską <span class="no">#${f.number}</span></h1></div>
-      <figure class="hero-still">${pic(src, { lazy: false })}<figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
+      <figure class="hero-still"${focus(f)}><div class="hs-img">${pic(src, { lazy: false })}</div><figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
       <div class="hero-meta"><div class="meta"><a class="btn" href="${href(f)}">Szczegóły</a>
         <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>
       ${f.description ? `<div class="banner">${esc(f.description.split("\n")[0])}</div>` : f.note ? `<div class="banner">${esc(f.note)}</div>` : ""}`;
@@ -184,7 +188,7 @@
         ${e.badge ? `<div class="badge">${esc(e.badge)}</div><br>` : ""}
         <div class="eyebrow">Spotkanie #${e.number} <span class="tag ${up ? "" : "past"}" style="margin-left:.6rem">${up ? "nadchodzące" : "archiwum"}</span></div>
         <h1>${esc(f.title)}</h1><div class="lede">reż. ${esc(f.director)}</div></div>
-      <figure class="hero-still">${pic(src, { lazy: false })}</figure>
+      <figure class="hero-still"${focus(e)}><div class="hs-img">${pic(src, { lazy: false })}</div></figure>
       <div class="hero-meta"><div class="meta"><span class="btn static">${fmt(e.date)}${e.time ? " · " + e.time : ""}</span>${up ? ticket(e, "Kup bilet") : ""}</div></div></section>
       ${e.description ? `<section class="prose"><h2>O wydarzeniu</h2>${paras(e.description)}</section>` : ""}
       <section class="ev-body${e.poster ? "" : " noposter"}"><dl class="facts">${facts}</dl>${e.poster ? pic(e.poster, { alt: "Plakat: " + f.title, cls: "ev-poster" }) : ""}</section>

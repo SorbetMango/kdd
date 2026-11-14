@@ -409,3 +409,23 @@ main:focus{outline:none}
 .about-side .who-links{margin-top:1rem}
 /* telefon: odstęp pod etapami taki sam jak nad nimi (nad nimi dochodzi dolny margines sekcji głównej, 2rem) */
 @media(max-width:860px){.how + .about{padding-top:calc(clamp(1.8rem,3.2vw,3.6rem) + 2rem)}}
+
+/* telefon, strona główna: niższy, bardziej panoramiczny kadr; pod sekcją główną najpierw opis cyklu z licznikiem i prowadzącą, potem „Jak wygląda spotkanie” */
+@media(max-width:860px){
+  .hero:not(.ev) .hero-still{height:min(88vw,70svh)}
+  body[data-page="home"] main{display:flex;flex-direction:column}
+  body[data-page="home"] #hero{order:-2}
+  body[data-page="home"] .about{order:-1}
+  .how + .about{padding-top:clamp(1.8rem,3.2vw,3.6rem)}
+  body[data-page="home"] .how{padding-top:calc(clamp(1.8rem,3.2vw,3.6rem) + 2rem)}
+}
+
+/* kadrowanie zdjęcia w sekcji głównej ustawiane w panelu (pole focus wydarzenia); bez ustawienia zostaje domyślne */
+.hs-img{position:absolute;inset:0;overflow:hidden;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 42%),linear-gradient(to top,transparent 2%,#000 30%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 42%),linear-gradient(to top,transparent 2%,#000 30%);mask-composite:intersect}
+.hero-still img{-webkit-mask-image:none;mask-image:none;object-position:var(--fd,center 30%);transform-origin:var(--fd,center 30%);transform:scale(var(--fzd,1))}
+@media(max-width:860px){
+  .hs-img{-webkit-mask-image:none;mask-image:none}
+  .hero-still img{object-position:var(--fm,var(--fd,center 30%));transform-origin:var(--fm,var(--fd,center 30%));transform:scale(var(--fzm,var(--fzd,1)))}
+}
