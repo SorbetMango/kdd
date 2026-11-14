@@ -402,8 +402,10 @@ main:focus{outline:none}
 
 /* strona główna: opis cyklu tuż pod „Jak wygląda spotkanie”, licznik równo z górą opisu, pod nim karta Diany i jej profile */
 .how:has(+ .about){padding-bottom:0}
-.how + .about{align-items:start;padding-top:clamp(2rem,3.5vw,4rem);padding-bottom:0}
+.how + .about{align-items:start;padding-top:clamp(1.8rem,3.2vw,3.6rem);padding-bottom:0}
 .about .lead strong{font-family:inherit;text-transform:none;letter-spacing:0;font-size:1em;font-weight:600}
 .about-side .stats{padding-top:0;border-top:0}
 .about-side .host{margin-top:1.4rem}
 .about-side .who-links{margin-top:1rem}
+/* telefon: odstęp pod etapami taki sam jak nad nimi (nad nimi dochodzi dolny margines sekcji głównej, 2rem) */
+@media(max-width:860px){.how + .about{padding-top:calc(clamp(1.8rem,3.2vw,3.6rem) + 2rem)}}
