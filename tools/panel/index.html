@@ -201,6 +201,7 @@ function render() {
   <div class="row c4">${F("number", "Numer spotkania", e.number)}<div><label>Data</label><input type="date" data-k="date" value="${esc(e.date)}"></div>${F("time", "Godzina (np. 19:00)", e.time, "19:00")}${F("badge", "Plakietka (np. Przedpremiera)", e.badge)}</div>
   <div class="row c2">${F("ticketUrl", "Link do biletów", e.ticketUrl, "https://bilety.charlie.pl/…")}${F("note", "Goście / uwagi", e.note)}</div>
   <div class="row c2">${F("series", "Cykl (np. Cinema Italia Oggi)", e.series)}${F("format", "Format", e.format)}</div>
+  <div class="row c2">${F("accent", "Kolor akcentu wydarzenia (puste = koralowy)", e.accent, "#ff8a6b")}${F("accent2", "Drugi kolor: pasek i kropka (puste = brzoskwiniowy)", e.accent2, "#ffd9b0")}</div>
   <label>Opis wydarzenia <span class="note" style="text-transform:none;letter-spacing:0">(pierwsze zdanie pokazuje się w żółtym pasku na stronie głównej)</span></label>
   <textarea data-k="description">${esc(e.description)}</textarea>
   <div style="margin:.4rem 0 1rem"><button id="useOv" ${tmdbData ? "" : "disabled"}>Wstaw opis filmu z TMDB</button></div>

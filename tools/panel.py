@@ -16,7 +16,7 @@ ROOT = os.environ.get("KDD_ROOT") or os.path.dirname(HERE)
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8125
 EV = os.path.join(ROOT, "data", "events.js")
 TMDB_IMG = "https://image.tmdb.org/t/p/"
-FIELDS = ("number", "date", "time", "format", "series", "badge", "note", "description", "ticketUrl", "summary")
+FIELDS = ("number", "date", "time", "format", "series", "badge", "note", "description", "ticketUrl", "summary", "accent", "accent2")
 
 COUNTRIES = {"PL": "Polska", "US": "USA", "GB": "Wielka Brytania", "FR": "Francja", "DE": "Niemcy", "IT": "Włochy", "ES": "Hiszpania",
              "JP": "Japonia", "KR": "Korea Południowa", "CN": "Chiny", "HK": "Hongkong", "RU": "Rosja", "SE": "Szwecja", "DK": "Dania",
@@ -252,6 +252,9 @@ def do_save(p):
         raise ValueError("Podaj datę wydarzenia.")
     if ev.get("time") and not re.fullmatch(r"\d{1,2}:\d{2}", ev["time"]):
         raise ValueError("Godzina ma mieć postać 19:00.")
+    for k in ("accent", "accent2"):
+        if ev.get(k) and not re.fullmatch(r"#[0-9a-fA-F]{6}", ev[k]):
+            raise ValueError("Kolor ma mieć postać #a9b8e8 (znak # i 6 znaków).")
     if film.get("year") not in (None, ""):
         film["year"] = int(film["year"])
     number = int(ev["number"])
@@ -271,7 +274,7 @@ def do_save(p):
         if k in ev and k != "number":
             v = ev[k]
             if v in ("", None):
-                cur.pop(k, None) if k in ("series", "badge", "note", "time") else cur.__setitem__(k, "")
+                cur.pop(k, None) if k in ("series", "badge", "note", "time", "accent", "accent2") else cur.__setitem__(k, "")
             else:
                 cur[k] = v
     # kadrowanie zdjęcia w sekcji głównej: {"d": [x, y, powiększenie], "m": [...]}; x, y w procentach 0-100, powiększenie 100-250

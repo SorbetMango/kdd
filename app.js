@@ -28,6 +28,10 @@
     return `<img src="${esc(src)}" alt="${esc(alt)}"${w ? ` width="${w}" height="${h}"` : ""}${lazy ? ' loading="lazy"' : ""}${cls ? ` class="${cls}"` : ""}>`;
   };
   const $ = s => document.querySelector(s);
+  // własny kolor akcentu wydarzenia (pola accent / accent2 w danych, ustawiane w panelu)
+  const HEX = /^#[0-9a-f]{6}$/i;
+  const accentStyle = e => ["accent", "accent2"].filter(k => HEX.test(e[k] || "")).map(k => `--${k}:${e[k]}`).join(";");
+  const applyAccent = e => ["accent", "accent2"].forEach(k => HEX.test(e[k] || "") ? document.documentElement.style.setProperty("--" + k, e[k]) : document.documentElement.style.removeProperty("--" + k));
   const page = document.body.dataset.page;
 
   /* ---------- menu i stopka ---------- */
@@ -73,16 +77,40 @@
   if (page === "home") {
     const upcoming = ALL.filter(isUpcoming).sort((a, b) => startOf(a) - startOf(b));
     const past = ALL.filter(e => !isUpcoming(e));
-    const f = upcoming[0] || ALL[0], src = wide(f);
-
-    $("#hero").innerHTML = `<section class="hero"><div class="hero-text">
+    // sekcja główna: wszystkie nadchodzące wydarzenia obok siebie, przesuwane w bok (strzałki, palec, gładzik)
+    const slides = upcoming.length ? upcoming : [ALL[0]];
+    const bannerText = e => e.description ? e.description.split("\n")[0] : e.note || "";
+    $("#hero").innerHTML = `<div class="hero-wrap"><div class="hero-rail">${slides.map((f, i) => `<section class="hero" style="${accentStyle(f)}"><div class="hero-text">
         ${f.badge ? `<div class="badge">${esc(f.badge)}</div><br>` : ""}
         <div class="eyebrow">${esc(f.series || S.venue.name)} <span class="muted">| ${esc(S.venue.city)}</span></div>
         <h1>Kino z Dianą<br>Dąbrowską <span class="no">#${f.number}</span></h1></div>
-      <figure class="hero-still"${focus(f)}><div class="hs-img">${pic(src, { lazy: false })}</div><figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
+      <figure class="hero-still"${focus(f)}><div class="hs-img">${pic(wide(f), { lazy: i > 0 })}</div><figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
       <div class="hero-meta"><div class="meta"><a class="btn" href="${href(f)}">Szczegóły</a>
-        <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>
-      ${f.description ? `<div class="banner">${esc(f.description.split("\n")[0])}</div>` : f.note ? `<div class="banner">${esc(f.note)}</div>` : ""}`;
+        <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>`).join("")}</div>
+      ${slides.length > 1 ? `<button class="hero-nav prev" type="button" aria-label="Poprzednie wydarzenie" hidden><span aria-hidden="true">←</span></button>
+      <button class="hero-nav next" type="button" aria-label="Następne wydarzenie"><span aria-hidden="true">→</span></button>
+      <div class="hero-dots" aria-hidden="true">${slides.map(() => "<i></i>").join("")}</div>` : ""}</div>
+      <div class="banner" hidden></div>`;
+    {
+      const rail = $(".hero-rail"), ban = $("#hero .banner");
+      let cur = -1;
+      const setActive = i => {
+        i = Math.max(0, Math.min(slides.length - 1, i));
+        if (i === cur) return;
+        cur = i; applyAccent(slides[i]);
+        const t = bannerText(slides[i]); ban.textContent = t; ban.hidden = !t;
+        if (slides.length > 1) {
+          $(".hero-nav.prev").hidden = i === 0; $(".hero-nav.next").hidden = i === slides.length - 1;
+          document.querySelectorAll(".hero-dots i").forEach((d, k) => d.classList.toggle("on", k === i));
+        }
+      };
+      setActive(0);
+      if (slides.length > 1) {
+        rail.addEventListener("scroll", () => setActive(Math.round(rail.scrollLeft / rail.clientWidth)), { passive: true });
+        const go = d => rail.scrollTo({ left: (cur + d) * rail.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        $(".hero-nav.prev").onclick = () => go(-1); $(".hero-nav.next").onclick = () => go(1);
+      }
+    }
 
     renderStats();
 
@@ -184,6 +212,7 @@
       ["Film", [f.genre, f.original, f.country, f.year].filter(Boolean).join(" · ")], ["Reżyseria", f.director], ["Scenariusz", f.screenplay],
       ["Zdjęcia", f.cinematography], ["Muzyka", f.music], ["Obsada", f.cast], ["Czas trwania", f.runtime], ["Dystrybutor", f.distributor]]
       .filter(r => r[1]).map(r => `<div><dt>${r[0]}</dt><dd>${r[2] ? r[1] : esc(r[1])}</dd></div>`).join("");
+    applyAccent(e);
     $("#event").innerHTML = `<section class="hero ev${up ? " live" : ""}"><div class="hero-text">
         ${e.badge ? `<div class="badge">${esc(e.badge)}</div><br>` : ""}
         <div class="eyebrow">Spotkanie #${e.number} <span class="tag ${up ? "" : "past"}" style="margin-left:.6rem">${up ? "nadchodzące" : "archiwum"}</span></div>

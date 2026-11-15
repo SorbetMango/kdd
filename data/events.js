@@ -25,6 +25,34 @@
 */
 window.EVENTS = [
  {
+  "id": "227-tierra-viva",
+  "number": 227,
+  "format": "Film + dyskusja",
+  "description": "Przedpremiera! Po seansie spotkanie z Eweliną Flintą.\n\nZapraszamy na kolejny seans z cyklu Kino z Dianą Dąbrowską! Tym razem przedpremierowo pokażemy film „Tierra viva” w reżyserii Blaise’a Grissona. Po projekcji odbędzie się spotkanie z Eweliną Flintą!\n\nMarta (Katarzyna Butowtt), niegdyś słynna polska piosenkarka, przyjeżdża do Gwatemali po nagłej śmierci syna. Na lotnisku czeka na nią Marco – partner Daniela, o którego istnieniu Marta nigdy wcześniej nie słyszała. Wspólnie wyruszają w podróż, by pochować zmarłego.\n\nPodczas drogi przez Gwatemalę na jaw wychodzą przemilczane prawdy, rodzinne tajemnice i emocje, z którymi bohaterowie dotąd nie potrafili się zmierzyć. To intymna opowieść o żałobie, odkrywaniu siebie i nieoczekiwanej bliskości, balansująca na granicy fabuły i dokumentu.",
+  "ticketUrl": "https://tiny.pl/9ds7jhmq6",
+  "image": "img/227-20261115085144.jpg",
+  "summary": "",
+  "gallery": [],
+  "film": {
+   "title": "Tierra viva",
+   "director": "Blaise Grisson",
+   "year": 2026,
+   "country": "Polska, Gwatemala",
+   "runtime": "97 min",
+   "genre": "dramat",
+   "screenplay": "Blaise Grisson",
+   "cinematography": "Pepe Orozco Recinos",
+   "cast": "Katarzyna Butowtt, Juan Diego Díaz, Ewelina Flinta, María Funes, John Kellock"
+  },
+  "date": "2026-11-25",
+  "time": "19:00",
+  "badge": "Przedpremiera",
+  "note": "Spotkanie z Eweliną Flintą",
+  "accent": "#a9b8e8",
+  "accent2": "#ffe9a6",
+  "poster": "img/tmdb/gojndEwebcjom6E68nYkjxEp8qm.jpg"
+ },
+ {
   "id": "226-najlepsza-owsianka-na-swiecie",
   "number": 226,
   "date": "2026-11-17",
