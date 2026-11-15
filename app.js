@@ -41,7 +41,7 @@
 
   const social = [["Grupa na Facebooku", S.links.facebookGroup], ["Fanpage Diany", S.links.facebookPage], ["Instagram", S.links.instagram], ["Kanał WhatsApp", S.links.whatsapp]]
     .filter(l => l[1] && l[1] !== "#");
-  $("#footer").outerHTML = `<footer class="foot"><div class="wordmark" aria-hidden="true">${esc(S.name)}</div><div class="foot-cols">
+  $("#footer").outerHTML = `<img class="kdz" src="img/kedziorek.webp" alt="" aria-hidden="true" width="464" height="520"><footer class="foot"><div class="wordmark" aria-hidden="true">${esc(S.name)}</div><div class="foot-cols">
     <div><b>${esc(S.name)}</b><br>Cykl spotkań filmowych z dyskusją.<br>Spotykamy się w: <a href="${S.venue.url}" target="_blank" rel="noopener">${esc(S.venue.name)}, ${esc(S.venue.city)}</a></div>
     <div>${social.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join(" · ")}</div>
     <div>Plakaty i kadry: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Serwis korzysta z API TMDB, ale nie jest przez TMDB wspierany ani certyfikowany.</div>
