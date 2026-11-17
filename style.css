@@ -466,3 +466,21 @@ main:focus{outline:none}
   .hero-dots{bottom:auto;top:calc(min(88vw,70svh) + .55rem)}
 }
 @media(prefers-reduced-motion:reduce){.hero-nav.next span{animation:none}}
+
+/* komputer: sekcja główna + żółty pasek mieszczą się razem na pierwszym ekranie */
+@media(min-width:861px){
+  .hero-rail > .hero{min-height:calc(min(100svh,85rem) - var(--ban,0px))}
+}
+/* niskie ekrany laptopów: mniej miejsca nad i pod napisem, żeby pasek nadal mieścił się na pierwszym ekranie */
+@media(min-width:861px) and (max-height:820px){
+  .hero-rail > .hero{padding-top:4.6rem;padding-bottom:2rem}
+}
+
+/* Kędziorek wysuwa się zza dolnej krawędzi ekranu po 15 s (ruch trwa 1 s) */
+.kdz{transform:translateY(105%);animation:kdz-in 1s cubic-bezier(.2,.8,.3,1.15) 15s forwards}
+@keyframes kdz-in{to{transform:none}}
+@media(prefers-reduced-motion:reduce){.kdz{animation-duration:.01s}}
+
+/* przyciski z ikoną (Fanpage, Instagram, Grupa pod kartą Diany) */
+.btn.ico{display:inline-flex;align-items:center;gap:.5rem}
+.btn.ico svg{width:1.15em;height:1.15em;flex:none}

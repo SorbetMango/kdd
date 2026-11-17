@@ -30,7 +30,7 @@ window.EVENTS = [
   "format": "Film + dyskusja",
   "description": "Przedpremiera! Po seansie spotkanie z Eweliną Flintą.\n\nZapraszamy na kolejny seans z cyklu Kino z Dianą Dąbrowską! Tym razem przedpremierowo pokażemy film „Tierra viva” w reżyserii Blaise’a Grissona. Po projekcji odbędzie się spotkanie z Eweliną Flintą!\n\nMarta (Katarzyna Butowtt), niegdyś słynna polska piosenkarka, przyjeżdża do Gwatemali po nagłej śmierci syna. Na lotnisku czeka na nią Marco – partner Daniela, o którego istnieniu Marta nigdy wcześniej nie słyszała. Wspólnie wyruszają w podróż, by pochować zmarłego.\n\nPodczas drogi przez Gwatemalę na jaw wychodzą przemilczane prawdy, rodzinne tajemnice i emocje, z którymi bohaterowie dotąd nie potrafili się zmierzyć. To intymna opowieść o żałobie, odkrywaniu siebie i nieoczekiwanej bliskości, balansująca na granicy fabuły i dokumentu.",
   "ticketUrl": "https://tiny.pl/9ds7jhmq6",
-  "image": "img/227-20261115085144.jpg",
+  "image": "img/227-20261117165619.jpg",
   "summary": "",
   "gallery": [],
   "film": {

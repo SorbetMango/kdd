@@ -50,6 +50,8 @@
     <div>${social.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join(" · ")}</div>
     <div>Plakaty i kadry: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Serwis korzysta z API TMDB, ale nie jest przez TMDB wspierany ani certyfikowany.</div>
   </div></footer>`;
+  // strona główna: stopka stoi nad sekcją „Dołącz do nas”, która zamyka stronę
+  { const join = document.getElementById("dolacz"), foot = document.querySelector("footer.foot"); if (join && foot) foot.after(join); }
 
   const ticket = (e, label) => `<a class="btn cta" href="${esc(e.ticketUrl || S.venue.url)}" target="_blank" rel="noopener">${label} <span aria-hidden="true">→</span></a>`;
 
@@ -98,12 +100,15 @@
         i = Math.max(0, Math.min(slides.length - 1, i));
         if (i === cur) return;
         cur = i; applyAccent(slides[i]);
-        const t = bannerText(slides[i]); ban.textContent = t; ban.hidden = !t;
+        const t = bannerText(slides[i]); ban.textContent = t; ban.hidden = !t; fitBanner();
         if (slides.length > 1) {
           $(".hero-nav.prev").hidden = i === 0; $(".hero-nav.next").hidden = i === slides.length - 1;
           document.querySelectorAll(".hero-dots i").forEach((d, k) => d.classList.toggle("on", k === i));
         }
       };
+      // żółty pasek ma być widoczny bez przewijania: sekcja główna jest niższa o jego wysokość
+      function fitBanner() { $("#hero").style.setProperty("--ban", ban.hidden ? "0px" : ban.offsetHeight + "px"); }
+      addEventListener("resize", fitBanner);
       setActive(0);
       if (slides.length > 1) {
         rail.addEventListener("scroll", () => setActive(Math.round(rail.scrollLeft / rail.clientWidth)), { passive: true });
@@ -121,7 +126,15 @@
       : `<p class="muted">Kolejne spotkanie wkrótce — zapisz się na newsletter, żeby nie przegapić.</p>`;
 
     const dl = $("#diana-links");
-    if (dl) dl.innerHTML = [["Fanpage Diany", S.links.facebookPage], ["Instagram", S.links.instagram]].filter(x => x[1]).map(([t, u]) => `<a class="btn" href="${u}" target="_blank" rel="noopener">${t}</a>`).join("");
+    // przyciski pod kartą Diany: ikona + krótka nazwa; „Grupa” pojawi się, gdy w data/site.js będzie link do grupy
+    const ICON = {
+      fb: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6h1.7V4.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3v3.2h2.8V22z"/></svg>',
+      ig: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3z"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg>',
+      grp: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2z"/><circle cx="17" cy="9" r="2.7"/><path d="M16.4 13.9c3 .1 5.1 2.4 5.1 5.4V20h-4.2c0-2.3-.4-4.3-.9-6.1z"/></g></svg>'
+    };
+    const ok = u => u && u !== "#";
+    if (dl) dl.innerHTML = [["Fanpage", S.links.facebookPage, "fb"], ["Instagram", S.links.instagram, "ig"], ["Grupa", S.links.facebookGroup, "grp"]].filter(x => ok(x[1]))
+      .map(([t, u, ic]) => `<a class="btn ico" href="${u}" target="_blank" rel="noopener">${ICON[ic]}${t}</a>`).join("");
 
     $("#past").innerHTML = past.slice(0, 16).map(e => `<a class="tile" href="${href(e)}">${pic(wide(e), { small: true })}
       <span class="t-num">#${e.number}</span><div class="t-body"><div class="t-date">${fmt(e.date)}</div><h3>${esc(e.film.title)}</h3><div class="dir">${esc(e.film.director)}</div></div></a>`).join("");
