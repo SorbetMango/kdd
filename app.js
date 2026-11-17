@@ -5,7 +5,10 @@
   const now = new Date();
   // Początek wydarzenia (czas lokalny odwiedzającego). Bez godziny: wydarzenie trwa do końca dnia.
   const startOf = e => { const m = /^(\d{1,2}):(\d{2})$/.exec(e.time || ""); return new Date(e.date + "T" + (m ? m[1].padStart(2, "0") + ":" + m[2] : "23:59") + ":00"); };
-  const isUpcoming = e => startOf(e) > new Date();      // po godzinie rozpoczęcia wydarzenie ustępuje następnemu
+  // wydarzenie zostaje „nadchodzącym” (sekcja główna, lista) do końca swojego dnia; następnego dnia ustępuje kolejnemu
+  const isUpcoming = e => new Date(e.date + "T23:59:59") > new Date();
+  // „Kup bilet” znika już o godzinie rozpoczęcia
+  const canBuy = e => startOf(e) > new Date();
   const D = d => new Date(d + "T12:00:00");
   const fmt = d => D(d).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
   const fmtShort = d => D(d).toLocaleDateString("pl-PL", { day: "numeric", month: "long" });
@@ -92,7 +95,7 @@
         <h1>Kino z Dianą<br>Dąbrowską <span class="no">#${f.number}</span></h1></div>
       <figure class="hero-still"${focus(f)}><div class="hs-img">${pic(wide(f), { lazy: i > 0 })}</div><figcaption>${esc(f.film.title)}<small>reż. ${esc(f.film.director)}</small></figcaption></figure>
       <div class="hero-meta"><div class="meta"><a class="btn" href="${href(f)}">Szczegóły</a>
-        <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${isUpcoming(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>`).join("")}</div>
+        <span class="btn static">${fmtShort(f.date)}${f.time ? " o " + f.time : ""}</span>${canBuy(f) ? ticket(f, "Kup bilet") : ""}</div></div></section>`).join("")}</div>
       ${slides.length > 1 ? `<button class="hero-nav prev" type="button" aria-label="Poprzednie wydarzenie" hidden><span aria-hidden="true">←</span></button>
       <button class="hero-nav next" type="button" aria-label="Następne wydarzenie"><span aria-hidden="true">→</span></button>
       <div class="hero-dots" aria-hidden="true">${slides.map(() => "<i></i>").join("")}</div>` : ""}</div>
@@ -235,7 +238,7 @@
         <div class="eyebrow">Spotkanie #${e.number} <span class="tag ${up ? "" : "past"}" style="margin-left:.6rem">${up ? "nadchodzące" : "archiwum"}</span></div>
         <h1>${esc(f.title)}</h1><div class="lede">reż. ${esc(f.director)}</div></div>
       <figure class="hero-still"${focus(e)}><div class="hs-img">${pic(src, { lazy: false })}</div></figure>
-      <div class="hero-meta"><div class="meta"><span class="btn static">${fmt(e.date)}${e.time ? " · " + e.time : ""}</span>${up ? ticket(e, "Kup bilet") : ""}</div></div></section>
+      <div class="hero-meta"><div class="meta"><span class="btn static">${fmt(e.date)}${e.time ? " · " + e.time : ""}</span>${canBuy(e) ? ticket(e, "Kup bilet") : ""}</div></div></section>
       ${e.description ? `<section class="prose"><h2>O wydarzeniu</h2>${paras(e.description)}</section>` : ""}
       <section class="ev-body${e.poster ? "" : " noposter"}"><dl class="facts">${facts}</dl>${e.poster ? pic(e.poster, { alt: "Plakat: " + f.title, cls: "ev-poster" }) : ""}</section>
       ${e.summary ? `<section class="prose"><h2>Po spotkaniu</h2>${paras(e.summary)}</section>` : ""}
