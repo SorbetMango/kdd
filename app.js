@@ -50,6 +50,10 @@
     <div>${social.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join(" · ")}</div>
     <div>Plakaty i kadry: <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>. Serwis korzysta z API TMDB, ale nie jest przez TMDB wspierany ani certyfikowany.</div>
   </div></footer>`;
+  // Kędziorek: od początku wystaje czubek głowy, po 15 s wysuwa się sam; kliknięcie chowa go / wysuwa (także przed upływem 15 s)
+  { const k = document.querySelector(".kdz");
+    if (k) { k.addEventListener("animationend", () => k.classList.add("in"));
+      k.addEventListener("click", () => { if (k.classList.contains("in")) k.classList.toggle("hid"); else k.classList.add("in"); }); } }
   // strona główna: stopka stoi nad sekcją „Dołącz do nas”, która zamyka stronę
   { const join = document.getElementById("dolacz"), foot = document.querySelector("footer.foot"); if (join && foot) foot.after(join); }
 

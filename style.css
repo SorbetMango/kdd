@@ -476,11 +476,17 @@ main:focus{outline:none}
   .hero-rail > .hero{padding-top:4.6rem;padding-bottom:2rem}
 }
 
-/* Kędziorek wysuwa się zza dolnej krawędzi ekranu po 15 s (ruch trwa 1 s) */
-.kdz{transform:translateY(105%);animation:kdz-in 1s cubic-bezier(.2,.8,.3,1.15) 15s forwards}
-@keyframes kdz-in{to{transform:none}}
+/* Kędziorek: od początku wystaje mu czubek głowy, po 15 s wysuwa się cały (ruch trwa 1 s) */
+.kdz{transform:translateY(76%);animation:kdz-in 1s cubic-bezier(.2,.8,.3,1.15) 15s forwards}
+@keyframes kdz-in{from{transform:translateY(76%)}to{transform:none}}
 @media(prefers-reduced-motion:reduce){.kdz{animation-duration:.01s}}
 
 /* przyciski z ikoną (Fanpage, Instagram, Grupa pod kartą Diany) */
 .btn.ico{display:inline-flex;align-items:center;gap:.5rem}
 .btn.ico svg{width:1.15em;height:1.15em;flex:none}
+
+/* Kędziorek klikalny: chowa się (wystaje czubek głowy) i wraca */
+.kdz{pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.kdz.in{animation:none;transform:none;transition:transform .5s cubic-bezier(.3,.7,.3,1.1)}
+.kdz.in.hid{transform:translateY(76%)}
+@media(prefers-reduced-motion:reduce){.kdz.in{transition:none}}
